@@ -1,7 +1,6 @@
-﻿namespace CrmApp.Models
+﻿namespace CrmApp.Models;
+
+public class Client : Person
 {
-    public class Client : Person
-    {
-        public ICollection<Contract> Contracts { get; set; } = [];
-    }
+    public ICollection<Contract> Contracts { get; set; } = [];
 }
