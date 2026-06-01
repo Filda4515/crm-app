@@ -23,8 +23,11 @@ public class PersonTests
     };
 
     [Theory]
+    [InlineData("530101/123", 73)]
     [InlineData("960101/1234", 30)]
     [InlineData("965101/1234", 30)]
+    [InlineData("961231/1234", 29)]
+    [InlineData("050101/1234", 21)]
     public void Validate_ShouldPass_WhenAgeMatchesBirthNumber(string birthNumber, int age)
     {
         // Arrange

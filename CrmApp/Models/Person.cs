@@ -37,17 +37,12 @@ public abstract class Person : IValidatableObject
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
         int slashIndex = BirthNumber.IndexOf('/');
-        if (slashIndex != 6) yield break;
-
-        if (!int.TryParse(BirthNumber.AsSpan(0, 2), out int yy) ||
-            !int.TryParse(BirthNumber.AsSpan(2, 2), out int mm) ||
-            !int.TryParse(BirthNumber.AsSpan(4, 2), out int dd))
-            yield break;
+        int yy = int.Parse(BirthNumber.AsSpan(0, 2));
+        int mm = int.Parse(BirthNumber.AsSpan(2, 2));
+        int dd = int.Parse(BirthNumber.AsSpan(4, 2));
 
         string suffix = BirthNumber[(slashIndex + 1)..];
-        int century = suffix.Length == 3 ? 1900
-            : yy >= 54 ? 1900
-            : 2000;
+        int century = suffix.Length == 3 ? 1900 : yy >= 54 ? 1900 : 2000;
         int fullYear = century + yy;
 
         if (mm > 50) mm -= 50;
