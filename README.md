@@ -27,6 +27,7 @@ Aplikace obsluhuje CRUD operace pro každou z hlavních entit (`Clients`, `Advis
 * **Modely (Models):** Obsahují definice entit (`Client`, `Advisor`, `Contract`) a jejich vzájemné relační vazby. Přímo v modelech jsou implementována základní validační pravidla.
 * **Služby (Services):** Obsahují hlavní logiku aplikace (`IClientService`, `IAdvisorService`, `IContractService`). Zajišťují veškeré CRUD operace a oddělují kontrolery od přímého přístupu k datům.
 * **Kontrolery (Controllers):** Zajišťují HTTP směrování. Zpracovávají vstupy, kontrolují validitu dat (`ModelState.IsValid`) a komunikují se službami.
+* **Databáze (Data):** Využívá **Entity Framework Core** napojený na **MS SQL Server Express**. Využívá EF Migrací a seeding dat.
 
 ### Testování
 Testy jsou postaveny na frameworku **xUnit** ve spojení s knihovnou **Moq** a slouží k vývoji pomocí metody TDD (Test-Driven Development).

@@ -1,7 +1,19 @@
+using CrmApp.Data;
+using CrmApp.Services;
+
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+builder.Services.AddDbContext<CrmDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddScoped<IClientService, ClientService>();
+builder.Services.AddScoped<IAdvisorService, AdvisorService>();
+builder.Services.AddScoped<IContractService, ContractService>();
 
 var app = builder.Build();
 
