@@ -43,7 +43,21 @@ public class ContractService(CrmDbContext context) : IContractService
 
     public void UpdateContract(Contract contract)
     {
-        context.Contracts.Update(contract);
-        context.SaveChanges();
+        var existingContract = context.Contracts
+        .Include(c => c.Participants)
+        .FirstOrDefault(c => c.Id == contract.Id);
+
+        if (existingContract != null)
+        {
+            context.Entry(existingContract).CurrentValues.SetValues(contract);
+
+            if (contract.Participants != null && contract.Participants.Count != 0)
+            {
+                var participantIds = contract.Participants.Select(p => p.Id).ToList();
+                existingContract.Participants.Clear();
+                existingContract.Participants = [.. context.Advisors.Where(a => participantIds.Contains(a.Id))];
+            }
+            context.SaveChanges();
+        }
     }
 }

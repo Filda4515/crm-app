@@ -1,7 +1,9 @@
-﻿using CrmApp.Models;
+﻿using CrmApp.Extensions;
+using CrmApp.Models;
 using CrmApp.Services;
 
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace CrmApp.Controllers;
 
@@ -24,20 +26,36 @@ public class AdvisorsController(IAdvisorService advisorService) : Controller
     // GET: AdvisorsController/Create
     public ActionResult Create()
     {
-        return View();
+        var vm = new AdvisorFormViewModel
+        {
+            FirstName = "",
+            LastName = "",
+            BirthNumber = ""
+        };
+        return View(vm);
     }
 
     // POST: AdvisorsController/Create
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public ActionResult Create(Advisor advisor)
+    public ActionResult Create(AdvisorFormViewModel vm)
     {
         if (!ModelState.IsValid)
         {
-            return View(advisor);
+            return View(vm);
         }
 
-        advisorService.CreateAdvisor(advisor);
+        var newAdvisor = new Advisor
+        {
+            FirstName = vm.FirstName,
+            LastName = vm.LastName,
+            Email = vm.Email,
+            Phone = vm.Phone,
+            BirthNumber = vm.BirthNumber,
+            Age = vm.BirthNumber.GetAge() ?? 0
+        };
+
+        advisorService.CreateAdvisor(newAdvisor);
         return RedirectToAction(nameof(Index));
     }
 
@@ -45,34 +63,68 @@ public class AdvisorsController(IAdvisorService advisorService) : Controller
     public ActionResult Edit(int id)
     {
         var advisor = advisorService.GetAdvisorById(id);
-        return advisor == null ? NotFound() : View(advisor);
+        if (advisor == null)
+        {
+            return NotFound();
+        }
+
+        var vm = new AdvisorFormViewModel
+        {
+            Id = advisor.Id,
+            FirstName = advisor.FirstName,
+            LastName = advisor.LastName,
+            Email = advisor.Email,
+            Phone = advisor.Phone,
+            BirthNumber = advisor.BirthNumber
+        };
+
+        return View(vm);
     }
 
     // POST: AdvisorsController/Edit/5
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public ActionResult Edit(int id, Advisor advisor)
+    public ActionResult Edit(int id, AdvisorFormViewModel vm)
     {
-        if (id != advisor.Id)
+        if (id != vm.Id)
         {
             return NotFound();
         }
 
         if (!ModelState.IsValid)
         {
-            return View(advisor);
+            return View(vm);
         }
 
-        advisorService.UpdateAdvisor(advisor);
+        var updatedAdvisor = new Advisor
+        {
+            Id = vm.Id,
+            FirstName = vm.FirstName,
+            LastName = vm.LastName,
+            Email = vm.Email,
+            Phone = vm.Phone,
+            BirthNumber = vm.BirthNumber,
+            Age = vm.BirthNumber.GetAge() ?? 0
+        };
+
+        advisorService.UpdateAdvisor(updatedAdvisor);
         return RedirectToAction(nameof(Index));
     }
 
     // POST: AdvisorsController/Delete/5
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public ActionResult Delete(int id)
+    public ActionResult Delete(int id, bool deleteContracts = false)
     {
-        advisorService.DeleteAdvisor(id);
-        return RedirectToAction(nameof(Index));
+        try
+        {
+            advisorService.DeleteAdvisor(id, deleteContracts);
+            return RedirectToAction(nameof(Index));
+        }
+        catch (DbUpdateException)
+        {
+            TempData["ErrorMessage"] = "Tohoto poradce nelze smazat, protože stále spravuje smlouvy.";
+            return RedirectToAction(nameof(Index));
+        }
     }
 }

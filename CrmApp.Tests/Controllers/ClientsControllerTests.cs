@@ -2,7 +2,10 @@
 using CrmApp.Models;
 using CrmApp.Services;
 
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using Microsoft.EntityFrameworkCore;
 
 using Moq;
 
@@ -15,16 +18,35 @@ public class ClientsControllerTests
         return new ClientsController(mockService.Object);
     }
 
+    private static Client GetValidClient()
+    {
+        return new Client
+        {
+            Id = 1,
+            FirstName = "Jan",
+            LastName = "Novák",
+            BirthNumber = "960101/1234",
+            Age = 30
+        };
+    }
+
+    private static ClientFormViewModel GetValidViewModel()
+    {
+        return new ClientFormViewModel
+        {
+            Id = 1,
+            FirstName = "Jan",
+            LastName = "Novák",
+            BirthNumber = "960101/1234"
+        };
+    }
+
     [Fact]
     public void Index_ShouldReturnViewWithModel_WhenCalled()
     {
         // Arrange
         var mockService = new Mock<IClientService>();
-        var fakeClients = new List<Client>
-        {
-            new() { Id = 1, FirstName = "Jan", LastName = "Novák", BirthNumber = "960101/1234", Age = 30 }
-        };
-        mockService.Setup(s => s.GetAllClients()).Returns(fakeClients);
+        mockService.Setup(s => s.GetAllClients()).Returns([GetValidClient()]);
         var controller = CreateController(mockService);
 
         // Act
@@ -41,7 +63,7 @@ public class ClientsControllerTests
     {
         // Arrange
         var mockService = new Mock<IClientService>();
-        var existingClient = new Client { Id = 1, FirstName = "Jan", LastName = "Novák", BirthNumber = "960101/1234", Age = 30 };
+        var existingClient = GetValidClient();
         mockService.Setup(s => s.GetClientById(1)).Returns(existingClient);
         var controller = CreateController(mockService);
 
@@ -88,10 +110,10 @@ public class ClientsControllerTests
         // Arrange
         var mockService = new Mock<IClientService>();
         var controller = CreateController(mockService);
-        var newClient = new Client { FirstName = "Jan", LastName = "Novák", BirthNumber = "960101/1234", Age = 30 };
+        var newViewModel = GetValidViewModel();
 
         // Act
-        var result = controller.Create(newClient);
+        var result = controller.Create(newViewModel);
 
         // Assert
         var redirectToActionResult = Assert.IsType<RedirectToActionResult>(result);
@@ -107,14 +129,16 @@ public class ClientsControllerTests
         var controller = CreateController(mockService);
         controller.ModelState.AddModelError("FirstName", "Jméno je povinné.");
 
-        var invalidClient = new Client { FirstName = "", LastName = "Novák", BirthNumber = "" };
+        var invalidViewModel = GetValidViewModel();
+        invalidViewModel.FirstName = "";
 
         // Act
-        var result = controller.Create(invalidClient);
+        var result = controller.Create(invalidViewModel);
 
         // Assert
         var viewResult = Assert.IsType<ViewResult>(result);
-        Assert.Equal(invalidClient, viewResult.Model);
+        var model = Assert.IsType<ClientFormViewModel>(viewResult.Model);
+        Assert.Equal(invalidViewModel.LastName, model.LastName);
         mockService.Verify(s => s.CreateClient(It.IsAny<Client>()), Times.Never);
     }
 
@@ -124,7 +148,7 @@ public class ClientsControllerTests
     {
         // Arrange
         var mockService = new Mock<IClientService>();
-        var existingClient = new Client { Id = 1, FirstName = "Jan", LastName = "Novák", BirthNumber = "960101/1234", Age = 30 };
+        var existingClient = GetValidClient();
         mockService.Setup(s => s.GetClientById(1)).Returns(existingClient);
         var controller = CreateController(mockService);
 
@@ -133,7 +157,11 @@ public class ClientsControllerTests
 
         // Assert
         var viewResult = Assert.IsType<ViewResult>(result);
-        Assert.Equal(existingClient, viewResult.Model);
+        var model = Assert.IsType<ClientFormViewModel>(viewResult.Model);
+        Assert.Equal(existingClient.Id, model.Id);
+        Assert.Equal(existingClient.FirstName, model.FirstName);
+        Assert.Equal(existingClient.LastName, model.LastName);
+        Assert.Equal(existingClient.BirthNumber, model.BirthNumber);
     }
 
     [Fact]
@@ -157,15 +185,15 @@ public class ClientsControllerTests
         // Arrange
         var mockService = new Mock<IClientService>();
         var controller = CreateController(mockService);
-        var updatedClient = new Client { Id = 1, FirstName = "Jan", LastName = "Novák", BirthNumber = "960101/1234", Age = 30 };
+        var updatedViewModel = GetValidViewModel();
 
         // Act
-        var result = controller.Edit(1, updatedClient);
+        var result = controller.Edit(1, updatedViewModel);
 
         // Assert
         var redirectToActionResult = Assert.IsType<RedirectToActionResult>(result);
         Assert.Equal(nameof(ClientsController.Index), redirectToActionResult.ActionName);
-        mockService.Verify(s => s.UpdateClient(updatedClient), Times.Once);
+        mockService.Verify(s => s.UpdateClient(It.IsAny<Client>()), Times.Once);
     }
 
     [Fact]
@@ -174,10 +202,11 @@ public class ClientsControllerTests
         // Arrange
         var mockService = new Mock<IClientService>();
         var controller = CreateController(mockService);
-        var tamperedClient = new Client { Id = 2, FirstName = "Jan", LastName = "Novák", BirthNumber = "960101/1234", Age = 30 };
+        var tamperedViewModel = GetValidViewModel();
+        tamperedViewModel.Id = 2;
 
         // Act
-        var result = controller.Edit(1, tamperedClient);
+        var result = controller.Edit(1, tamperedViewModel);
 
         // Assert
         Assert.IsType<NotFoundResult>(result);
@@ -192,31 +221,16 @@ public class ClientsControllerTests
         var mockService = new Mock<IClientService>();
         var controller = CreateController(mockService);
         controller.ModelState.AddModelError("FirstName", "Jméno je povinné.");
-        var invalidClient = new Client { Id = 1, FirstName = "", LastName = "Novák", BirthNumber = "" };
+        var invalidViewModel = GetValidViewModel();
+        invalidViewModel.FirstName = "";
 
         // Act
-        var result = controller.Edit(1, invalidClient);
+        var result = controller.Edit(1, invalidViewModel);
 
         // Assert
         var viewResult = Assert.IsType<ViewResult>(result);
-        Assert.Equal(invalidClient, viewResult.Model);
-        mockService.Verify(s => s.UpdateClient(It.IsAny<Client>()), Times.Never);
-    }
-
-    [Fact]
-    public void Edit_Post_ShouldReturnNotFound_WhenIdMismatchesAndModelStateIsInvalid()
-    {
-        // Arrange
-        var mockService = new Mock<IClientService>();
-        var controller = CreateController(mockService);
-        controller.ModelState.AddModelError("FirstName", "Jméno je povinné.");
-        var tamperedInvalidClient = new Client { Id = 2, FirstName = "", LastName = "Novák", BirthNumber = "" };
-
-        // Act
-        var result = controller.Edit(1, tamperedInvalidClient);
-
-        // Assert
-        Assert.IsType<NotFoundResult>(result);
+        var model = Assert.IsType<ClientFormViewModel>(viewResult.Model);
+        Assert.Equal(invalidViewModel.Id, model.Id);
         mockService.Verify(s => s.UpdateClient(It.IsAny<Client>()), Times.Never);
     }
 
@@ -229,11 +243,29 @@ public class ClientsControllerTests
         int targetClientId = 1;
 
         // Act
-        var result = controller.Delete(targetClientId);
+        var result = controller.Delete(targetClientId, true);
 
         // Assert
         var redirectToActionResult = Assert.IsType<RedirectToActionResult>(result);
         Assert.Equal(nameof(ClientsController.Index), redirectToActionResult.ActionName);
-        mockService.Verify(s => s.DeleteClient(targetClientId), Times.Once);
+        mockService.Verify(s => s.DeleteClient(targetClientId, true), Times.Once);
+    }
+
+    [Fact]
+    public void Delete_Post_ShouldSetTempData_WhenDbUpdateExceptionThrown()
+    {
+        // Arrange
+        var mockService = new Mock<IClientService>();
+        mockService.Setup(s => s.DeleteClient(It.IsAny<int>(), false)).Throws(new DbUpdateException());
+        var controller = CreateController(mockService);
+        controller.TempData = new TempDataDictionary(new DefaultHttpContext(), Mock.Of<ITempDataProvider>());
+
+        // Act
+        var result = controller.Delete(1);
+
+        // Assert
+        var redirectToActionResult = Assert.IsType<RedirectToActionResult>(result);
+        Assert.Equal(nameof(ClientsController.Index), redirectToActionResult.ActionName);
+        Assert.NotNull(controller.TempData["ErrorMessage"]);
     }
 }

@@ -8,5 +8,5 @@ public interface IClientService
     Client? GetClientById(int id);
     void CreateClient(Client client);
     void UpdateClient(Client client);
-    void DeleteClient(int id);
+    void DeleteClient(int id, bool deleteContracts);
 }

@@ -2,9 +2,8 @@
 
 namespace CrmApp.Models;
 
-public class Contract : IValidatableObject
+public class ContractFormViewModel : IValidatableObject
 {
-    [Key]
     public int Id { get; set; }
 
     [Required(ErrorMessage = "Evidenční číslo je povinné.")]
@@ -18,11 +17,9 @@ public class Contract : IValidatableObject
 
     [Required(ErrorMessage = "Smlouva musí mít přiřazeného klienta.")]
     public int ClientId { get; set; }
-    public Client? Client { get; set; }
 
     [Required(ErrorMessage = "Správce smlouvy je povinný.")]
     public int ManagerId { get; set; }
-    public Advisor? Manager { get; set; }
 
     [Required]
     [Display(Name = "Datum uzavření")]
@@ -35,7 +32,7 @@ public class Contract : IValidatableObject
     [Display(Name = "Datum ukončení")]
     public DateTime? EndDate { get; set; }
 
-    public ICollection<Advisor> Participants { get; set; } = [];
+    public List<int> ParticipantIds { get; set; } = [];
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
@@ -43,15 +40,13 @@ public class Contract : IValidatableObject
         {
             yield return new ValidationResult("Datum platnosti nesmí předcházet datu uzavření.", [nameof(EffectiveDate)]);
         }
-
-        if (Participants.Count == 0)
+        if (ParticipantIds == null || ParticipantIds.Count == 0)
         {
-            yield return new ValidationResult("Smlouva musí mít minimálně jednoho účastníka.", [nameof(Participants)]);
-            yield break;
+            yield return new ValidationResult("Smlouva musí mít minimálně jednoho účastníka.", [nameof(ParticipantIds)]);
         }
-        else if (!Participants.Any(p => p.Id == ManagerId))
+        else if (!ParticipantIds.Contains(ManagerId))
         {
-            yield return new ValidationResult("Správce smlouvy musí být zároveň jedním z jejích účastníků.", [nameof(Participants)]);
+            yield return new ValidationResult("Správce smlouvy musí být zároveň jedním z jejích účastníků.", [nameof(ParticipantIds)]);
         }
     }
 }

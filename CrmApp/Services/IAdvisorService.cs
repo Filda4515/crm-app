@@ -8,5 +8,5 @@ public interface IAdvisorService
     Advisor? GetAdvisorById(int id);
     void CreateAdvisor(Advisor advisor);
     void UpdateAdvisor(Advisor advisor);
-    void DeleteAdvisor(int id);
+    void DeleteAdvisor(int id, bool deleteContracts);
 }

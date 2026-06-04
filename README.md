@@ -24,9 +24,9 @@ Aplikace obsluhuje CRUD operace pro každou z hlavních entit (`Clients`, `Advis
 * **`POST /{Entita}/Delete/{id}`:** Smazání záznamu.
 
 ### Architektura a vrstvy
-* **Modely (Models):** Obsahují definice entit (`Client`, `Advisor`, `Contract`) a jejich vzájemné relační vazby. Přímo v modelech jsou implementována základní validační pravidla.
+* **Modely a ViewModels:** Aplikace odděluje databázové doménové modely (`Client`, `Advisor`, `Contract`) od view modelů (`ClientFormViewModel`, `AdvisorFormViewModel`, `ContractFormViewModel`). Doménové modely definují strukturu pro SQL databázi, ViewModely slouží jako mezivrstva mezi formuláři a databázovými modely. Modely pro osoby navíc sdílejí logiku pomocí dědičnosti ze společné abstraktní třídy `PersonFormViewModel`.
 * **Služby (Services):** Obsahují hlavní logiku aplikace (`IClientService`, `IAdvisorService`, `IContractService`). Zajišťují veškeré CRUD operace a oddělují kontrolery od přímého přístupu k datům.
-* **Kontrolery (Controllers):** Zajišťují HTTP směrování. Zpracovávají vstupy, kontrolují validitu dat (`ModelState.IsValid`) a komunikují se službami.
+* **Kontrolery (Controllers):** Zajišťují HTTP směrování. Zpracovávají vstupy, kontrolují validitu dat (`ModelState.IsValid`) a komunikují se službami. `ErrorsController` slouží pro globální odchytávání chyb v produkčním prostředí.
 * **Databáze (Data):** Využívá **Entity Framework Core** napojený na **MS SQL Server Express**. Využívá EF Migrací a seeding dat.
 
 ### Testování

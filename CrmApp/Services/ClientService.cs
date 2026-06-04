@@ -1,6 +1,8 @@
 ﻿using CrmApp.Data;
 using CrmApp.Models;
 
+using Microsoft.EntityFrameworkCore;
+
 namespace CrmApp.Services;
 
 public class ClientService(CrmDbContext context) : IClientService
@@ -11,11 +13,19 @@ public class ClientService(CrmDbContext context) : IClientService
         context.SaveChanges();
     }
 
-    public void DeleteClient(int id)
+    public void DeleteClient(int id, bool deleteContracts = false)
     {
-        var client = context.Clients.Find(id);
+        var client = context.Clients
+            .Include(c => c.Contracts)
+            .FirstOrDefault(c => c.Id == id);
+
         if (client != null)
         {
+            if (deleteContracts && client.Contracts != null && client.Contracts.Any())
+            {
+                context.Contracts.RemoveRange(client.Contracts);
+            }
+
             context.Clients.Remove(client);
             context.SaveChanges();
         }
@@ -23,12 +33,14 @@ public class ClientService(CrmDbContext context) : IClientService
 
     public Client? GetClientById(int id)
     {
-        return context.Clients.FirstOrDefault(c => c.Id == id);
+        return context.Clients
+            .Include(c => c.Contracts)
+            .FirstOrDefault(c => c.Id == id);
     }
 
     public IEnumerable<Client> GetAllClients()
     {
-        return [.. context.Clients];
+        return [.. context.Clients.Include(c => c.Contracts)];
     }
 
     public void UpdateClient(Client client)

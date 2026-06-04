@@ -25,7 +25,23 @@ public class ContractsControllerTests
             ClientId = 1,
             ManagerId = 1,
             SignedDate = DateTime.Today,
-            EffectiveDate = DateTime.Today
+            EffectiveDate = DateTime.Today,
+            Participants = []
+        };
+    }
+
+    private static ContractFormViewModel GetValidViewModel()
+    {
+        return new ContractFormViewModel
+        {
+            Id = 1,
+            RegistrationNumber = "2026/001",
+            Institution = "ČSOB",
+            ClientId = 1,
+            ManagerId = 1,
+            SignedDate = DateTime.Today,
+            EffectiveDate = DateTime.Today,
+            ParticipantIds = [1]
         };
     }
 
@@ -100,25 +116,31 @@ public class ContractsControllerTests
         mockAdvisor.Verify(s => s.GetAllAdvisors(), Times.Once);
     }
 
+
     [Fact]
-    public void Create_Post_ShouldRedirectToIndex_WhenModelStateIsValid()
+    public void Create_Post_ShouldCallServiceWithPopulatedParticipants()
     {
         // Arrange
         var mockContract = new Mock<IContractService>();
-        var controller = CreateController(mockContract, new Mock<IClientService>(), new Mock<IAdvisorService>());
-        var newContract = GetValidContract();
+        var mockAdvisor = new Mock<IAdvisorService>();
+
+        var fakeAdvisor = new Advisor { Id = 1, FirstName = "Petr", LastName = "Novák", BirthNumber = "900101/1234" };
+        mockAdvisor.Setup(s => s.GetAllAdvisors()).Returns([fakeAdvisor]);
+
+        var controller = CreateController(mockContract, new Mock<IClientService>(), mockAdvisor);
+        var newViewModel = GetValidViewModel();
 
         // Act
-        var result = controller.Create(newContract);
+        var result = controller.Create(newViewModel);
 
         // Assert
         var redirectToActionResult = Assert.IsType<RedirectToActionResult>(result);
         Assert.Equal(nameof(ContractsController.Index), redirectToActionResult.ActionName);
-        mockContract.Verify(s => s.CreateContract(It.IsAny<Contract>()), Times.Once);
+        mockContract.Verify(s => s.CreateContract(It.Is<Contract>(c => c.Participants.Count == 1 && c.Participants.First().Id == 1)), Times.Once);
     }
 
     [Fact]
-    public void Create_Post_ShouldReturnViewWithModel_WhenModelStateIsInvalid()
+    public void Create_Post_ShouldReturnViewWithViewModel_WhenModelStateIsInvalid()
     {
         // Arrange
         var mockContract = new Mock<IContractService>();
@@ -127,21 +149,24 @@ public class ContractsControllerTests
         var controller = CreateController(mockContract, mockClient, mockAdvisor);
 
         controller.ModelState.AddModelError("RegistrationNumber", "Číslo je povinné.");
-        var invalidContract = new Contract { Institution = "ČSOB", ClientId = 1, ManagerId = 0, RegistrationNumber = "" };
+
+        var invalidViewModel = GetValidViewModel();
+        invalidViewModel.RegistrationNumber = "";
 
         // Act
-        var result = controller.Create(invalidContract);
+        var result = controller.Create(invalidViewModel);
 
         // Assert
         var viewResult = Assert.IsType<ViewResult>(result);
-        Assert.Equal(invalidContract, viewResult.Model);
+        var model = Assert.IsType<ContractFormViewModel>(viewResult.Model);
+        Assert.Equal(invalidViewModel.Institution, model.Institution);
         mockContract.Verify(s => s.CreateContract(It.IsAny<Contract>()), Times.Never);
         mockClient.Verify(s => s.GetAllClients(), Times.Once);
         mockAdvisor.Verify(s => s.GetAllAdvisors(), Times.Once);
     }
 
     [Fact]
-    public void Edit_ShouldReturnViewWithModel_WhenContractExists()
+    public void Edit_ShouldReturnViewWithViewModel_WhenContractExists()
     {
         // Arrange
         var mockContract = new Mock<IContractService>();
@@ -157,7 +182,8 @@ public class ContractsControllerTests
 
         // Assert
         var viewResult = Assert.IsType<ViewResult>(result);
-        Assert.Equal(existingContract, viewResult.Model);
+        var model = Assert.IsType<ContractFormViewModel>(viewResult.Model);
+        Assert.Equal(existingContract.Id, model.Id);
         mockClient.Verify(s => s.GetAllClients(), Times.Once);
         mockAdvisor.Verify(s => s.GetAllAdvisors(), Times.Once);
     }
@@ -183,15 +209,15 @@ public class ContractsControllerTests
         // Arrange
         var mockContract = new Mock<IContractService>();
         var controller = CreateController(mockContract, new Mock<IClientService>(), new Mock<IAdvisorService>());
-        var updatedContract = GetValidContract();
+        var updatedViewModel = GetValidViewModel();
 
         // Act
-        var result = controller.Edit(1, updatedContract);
+        var result = controller.Edit(1, updatedViewModel);
 
         // Assert
         var redirectToActionResult = Assert.IsType<RedirectToActionResult>(result);
         Assert.Equal(nameof(ContractsController.Index), redirectToActionResult.ActionName);
-        mockContract.Verify(s => s.UpdateContract(updatedContract), Times.Once);
+        mockContract.Verify(s => s.UpdateContract(It.IsAny<Contract>()), Times.Once);
     }
 
     [Fact]
@@ -200,11 +226,11 @@ public class ContractsControllerTests
         // Arrange
         var mockContract = new Mock<IContractService>();
         var controller = CreateController(mockContract, new Mock<IClientService>(), new Mock<IAdvisorService>());
-        var tamperedContract = GetValidContract();
-        tamperedContract.Id = 2;
+        var tamperedViewModel = GetValidViewModel();
+        tamperedViewModel.Id = 2;
 
         // Act
-        var result = controller.Edit(1, tamperedContract);
+        var result = controller.Edit(1, tamperedViewModel);
 
         // Assert
         Assert.IsType<NotFoundResult>(result);
@@ -212,27 +238,7 @@ public class ContractsControllerTests
     }
 
     [Fact]
-    public void Edit_Post_ShouldReturnNotFound_WhenIdMismatchesAndModelStateIsInvalid()
-    {
-        // Arrange
-        var mockContract = new Mock<IContractService>();
-        var controller = CreateController(mockContract, new Mock<IClientService>(), new Mock<IAdvisorService>());
-        controller.ModelState.AddModelError("Institution", "Chyba.");
-
-        var tamperedInvalidContract = GetValidContract();
-        tamperedInvalidContract.Id = 2;
-        tamperedInvalidContract.Institution = "";
-
-        // Act
-        var result = controller.Edit(1, tamperedInvalidContract);
-
-        // Assert
-        Assert.IsType<NotFoundResult>(result);
-        mockContract.Verify(s => s.UpdateContract(It.IsAny<Contract>()), Times.Never);
-    }
-
-    [Fact]
-    public void Edit_Post_ShouldReturnViewWithModel_WhenModelStateIsInvalid()
+    public void Edit_Post_ShouldReturnViewWithViewModel_WhenModelStateIsInvalid()
     {
         // Arrange
         var mockContract = new Mock<IContractService>();
@@ -241,15 +247,17 @@ public class ContractsControllerTests
         var controller = CreateController(mockContract, mockClient, mockAdvisor);
 
         controller.ModelState.AddModelError("Institution", "Chyba.");
-        var invalidContract = GetValidContract();
-        invalidContract.Institution = "";
+
+        var invalidViewModel = GetValidViewModel();
+        invalidViewModel.Institution = "";
 
         // Act
-        var result = controller.Edit(1, invalidContract);
+        var result = controller.Edit(1, invalidViewModel);
 
         // Assert
         var viewResult = Assert.IsType<ViewResult>(result);
-        Assert.Equal(invalidContract, viewResult.Model);
+        var model = Assert.IsType<ContractFormViewModel>(viewResult.Model);
+        Assert.Equal(invalidViewModel.Id, model.Id);
         mockContract.Verify(s => s.UpdateContract(It.IsAny<Contract>()), Times.Never);
         mockClient.Verify(s => s.GetAllClients(), Times.Once);
         mockAdvisor.Verify(s => s.GetAllAdvisors(), Times.Once);

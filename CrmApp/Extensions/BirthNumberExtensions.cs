@@ -1,0 +1,40 @@
+﻿namespace CrmApp.Extensions;
+
+public static class BirthNumberExtensions
+{
+    public static DateTime? GetDateOfBirth(this string birthNumber)
+    {
+        if (string.IsNullOrWhiteSpace(birthNumber) || !birthNumber.Contains('/'))
+            return null;
+
+        int slashIndex = birthNumber.IndexOf('/');
+        if (!int.TryParse(birthNumber.AsSpan(0, 2), out int yy) ||
+            !int.TryParse(birthNumber.AsSpan(2, 2), out int mm) ||
+            !int.TryParse(birthNumber.AsSpan(4, 2), out int dd))
+        {
+            return null;
+        }
+
+        string suffix = birthNumber[(slashIndex + 1)..];
+        int century = suffix.Length == 3 ? 1900 : yy >= 54 ? 1900 : 2000;
+        int fullYear = century + yy;
+
+        if (mm > 50) mm -= 50;
+
+        return DateTime.TryParseExact($"{fullYear:D4}{mm:D2}{dd:D2}", "yyyyMMdd", null, System.Globalization.DateTimeStyles.None, out DateTime dob)
+            ? dob
+            : null;
+    }
+
+    public static int? GetAge(this string birthNumber)
+    {
+        var dob = birthNumber.GetDateOfBirth();
+        if (!dob.HasValue) return null;
+
+        int age = DateTime.Today.Year - dob.Value.Year;
+        if (DateTime.Today < dob.Value.AddYears(age))
+            age--;
+
+        return age;
+    }
+}

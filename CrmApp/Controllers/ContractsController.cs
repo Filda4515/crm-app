@@ -26,22 +26,48 @@ public class ContractsController(IContractService contractService, IClientServic
     {
         ViewBag.Clients = clientService.GetAllClients();
         ViewBag.Advisors = advisorService.GetAllAdvisors();
-        return View();
+
+        var vm = new ContractFormViewModel
+        {
+            RegistrationNumber = "",
+            Institution = ""
+        };
+
+        return View(vm);
     }
 
     // POST: ContractsController/Create
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public ActionResult Create(Contract contract)
+    public ActionResult Create(ContractFormViewModel vm)
     {
+        var allAdvisors = advisorService.GetAllAdvisors();
+
         if (!ModelState.IsValid)
         {
             ViewBag.Clients = clientService.GetAllClients();
-            ViewBag.Advisors = advisorService.GetAllAdvisors();
-            return View(contract);
+            ViewBag.Advisors = allAdvisors;
+            return View(vm);
         }
 
-        contractService.CreateContract(contract);
+        var newContract = new Contract
+        {
+            RegistrationNumber = vm.RegistrationNumber,
+            Institution = vm.Institution,
+            ClientId = vm.ClientId,
+            ManagerId = vm.ManagerId,
+            SignedDate = vm.SignedDate,
+            EffectiveDate = vm.EffectiveDate,
+            EndDate = vm.EndDate,
+            Participants = []
+        };
+
+        foreach (var p in allAdvisors.Where(a => vm.ParticipantIds.Contains(a.Id)))
+        {
+            newContract.Participants.Add(p);
+        }
+
+        contractService.CreateContract(newContract);
         return RedirectToAction(nameof(Index));
     }
 
@@ -56,27 +82,61 @@ public class ContractsController(IContractService contractService, IClientServic
 
         ViewBag.Clients = clientService.GetAllClients();
         ViewBag.Advisors = advisorService.GetAllAdvisors();
-        return View(contract);
+
+        var vm = new ContractFormViewModel
+        {
+            Id = contract.Id,
+            RegistrationNumber = contract.RegistrationNumber,
+            Institution = contract.Institution,
+            ClientId = contract.ClientId,
+            ManagerId = contract.ManagerId,
+            SignedDate = contract.SignedDate,
+            EffectiveDate = contract.EffectiveDate,
+            EndDate = contract.EndDate,
+            ParticipantIds = [.. contract.Participants.Select(p => p.Id)]
+        };
+
+        return View(vm);
     }
 
     // POST: ContractsController/Edit/5
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public ActionResult Edit(int id, Contract contract)
+    public ActionResult Edit(int id, ContractFormViewModel vm)
     {
-        if (id != contract.Id)
+        if (id != vm.Id)
         {
             return NotFound();
         }
 
+        var allAdvisors = advisorService.GetAllAdvisors();
+
         if (!ModelState.IsValid)
         {
             ViewBag.Clients = clientService.GetAllClients();
-            ViewBag.Advisors = advisorService.GetAllAdvisors();
-            return View(contract);
+            ViewBag.Advisors = allAdvisors;
+            return View(vm);
         }
 
-        contractService.UpdateContract(contract);
+        var updatedContract = new Contract
+        {
+            Id = vm.Id,
+            RegistrationNumber = vm.RegistrationNumber,
+            Institution = vm.Institution,
+            ClientId = vm.ClientId,
+            ManagerId = vm.ManagerId,
+            SignedDate = vm.SignedDate,
+            EffectiveDate = vm.EffectiveDate,
+            EndDate = vm.EndDate,
+            Participants = []
+        };
+
+        foreach (var p in allAdvisors.Where(a => vm.ParticipantIds.Contains(a.Id)))
+        {
+            updatedContract.Participants.Add(p);
+        }
+
+        contractService.UpdateContract(updatedContract);
         return RedirectToAction(nameof(Index));
     }
 
