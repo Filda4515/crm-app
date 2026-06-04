@@ -1,0 +1,79 @@
+﻿@model CrmApp.Models.ContractFormViewModel
+
+<h1>Upravit smlouvu</h1>
+
+<form asp-action="Edit" method="post">
+    <input type="hidden" asp-for="Id" />
+
+    <div class="mb-3">
+        <label asp-for="RegistrationNumber" class="form-label"></label>
+        <input asp-for="RegistrationNumber" class="form-control" />
+        <span asp-validation-for="RegistrationNumber" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Institution" class="form-label"></label>
+        <input asp-for="Institution" class="form-control" />
+        <span asp-validation-for="Institution" class="text-danger"></span>
+    </div>
+
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <label asp-for="ClientId" class="form-label">Klient</label>
+            <select asp-for="ClientId" class="form-select"
+                    asp-items="@(((IEnumerable<CrmApp.Models.Client>)ViewBag.Clients).Select(c => new SelectListItem { Value = c.Id.ToString(), Text = $"{c.FirstName} {c.LastName} ({c.BirthNumber})" }))">
+                <option value="">-- Vyberte klienta --</option>
+            </select>
+            <span asp-validation-for="ClientId" class="text-danger"></span>
+        </div>
+        <div class="col-md-6">
+            <label asp-for="ManagerId" class="form-label">Správce smlouvy (Poradce)</label>
+            <select asp-for="ManagerId" class="form-select"
+                    asp-items="@(((IEnumerable<CrmApp.Models.Advisor>)ViewBag.Advisors).Select(a => new SelectListItem { Value = a.Id.ToString(), Text = $"{a.FirstName} {a.LastName}" }))">
+                <option value="">-- Vyberte správce --</option>
+            </select>
+            <span asp-validation-for="ManagerId" class="text-danger"></span>
+        </div>
+        <div class="col-md-12 mb-3">
+            <label class="form-label">Účastníci (Poradci)</label>
+            <select name="ParticipantIds" class="form-select" multiple style="height: 120px;">
+                @foreach (var advisor in (IEnumerable<CrmApp.Models.Advisor>)ViewBag.Advisors)
+                {
+                    bool isSelected = Model?.ParticipantIds?.Contains(advisor.Id) ?? false;
+                    <option value="@advisor.Id" selected="@(isSelected ? "selected" : null)">
+                        @advisor.FirstName @advisor.LastName
+                    </option>
+                }
+            </select>
+            <span asp-validation-for="ParticipantIds" class="text-danger"></span>
+            <div class="form-text">Pro výběr více osob najednou podržte klávesu CTRL.</div>
+        </div>
+    </div>
+
+    <div class="row mb-3">
+        <div class="col-md-4">
+            <label asp-for="SignedDate" class="form-label"></label>
+            <input asp-for="SignedDate" type="date" class="form-control" />
+            <span asp-validation-for="SignedDate" class="text-danger"></span>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="EffectiveDate" class="form-label"></label>
+            <input asp-for="EffectiveDate" type="date" class="form-control" />
+            <span asp-validation-for="EffectiveDate" class="text-danger"></span>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="EndDate" class="form-label"></label>
+            <input asp-for="EndDate" type="date" class="form-control" />
+            <span asp-validation-for="EndDate" class="text-danger"></span>
+        </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Uložit smlouvu</button>
+    <a asp-action="Index" class="btn btn-secondary">Zpět</a>
+</form>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

@@ -1,0 +1,77 @@
+﻿@model IEnumerable<CrmApp.Models.Contract>
+
+<h1>Smlouvy</h1>
+<a asp-action="Create" class="btn btn-primary mb-3">Přidat smlouvu</a>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Evidenční číslo</th>
+            <th>Instituce</th>
+            <th>Klient</th>
+            <th>Správce</th>
+            <th>Platnost od</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (!Model.Any())
+        {
+            <tr>
+                <td colspan="6" class="text-center text-muted">Zatím nejsou uloženy žádné smlouvy.</td>
+            </tr>
+        }
+        else
+        {
+            @foreach (var contract in Model)
+            {
+                <tr>
+                    <td>@contract.RegistrationNumber</td>
+                    <td>@contract.Institution</td>
+                    <td>@(contract.Client?.FirstName) @(contract.Client?.LastName)</td>
+                    <td>@(contract.Manager?.FirstName) @(contract.Manager?.LastName)</td>
+                    <td>@contract.EffectiveDate.ToShortDateString()</td>
+                    <td>
+                        <a asp-action="Details" asp-route-id="@contract.Id">Detail</a>
+                        <a asp-action="Edit" asp-route-id="@contract.Id">Upravit</a>
+                        <button type="button"
+                                class="btn btn-danger btn-sm"
+                                data-bs-toggle="modal"
+                                data-bs-target="#deleteModal"
+                                data-id="@contract.Id">
+                            Smazat
+                        </button>
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>
+
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Potvrdit smazání</h5>
+            </div>
+            <div class="modal-body">Opravdu chcete smazat tuto smlouvu?</div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Zrušit</button>
+                <form method="post" asp-action="Delete">
+                    <input type="hidden" id="deleteId" name="id" />
+                    <button type="submit" class="btn btn-danger">Smazat</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $('#deleteModal').on('show.bs.modal', function (e) {
+            const $button = $(e.relatedTarget);
+            const contractId = $button.data('id');
+            $('#deleteId').val(contractId);
+        });
+    </script>
+}

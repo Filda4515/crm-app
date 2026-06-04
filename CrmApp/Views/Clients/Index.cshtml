@@ -1,0 +1,116 @@
+﻿@model IEnumerable<CrmApp.Models.Client>
+
+<h1>Klienti</h1>
+<a asp-action="Create" class="btn btn-primary mb-3">Přidat klienta</a>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Jméno</th>
+            <th>Příjmení</th>
+            <th>Rodné číslo</th>
+            <th>Věk</th>
+            <th>E-mail</th>
+            <th>Telefon</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (!Model.Any())
+        {
+            <tr>
+                <td colspan="7" class="text-center text-muted">Zatím nejsou uloženi žádní klienti.</td>
+            </tr>
+        }
+        else
+        {
+            @foreach (var client in Model)
+            {
+                <tr>
+                    <td>@client.FirstName</td>
+                    <td>@client.LastName</td>
+                    <td>@client.BirthNumber</td>
+                    <td>@client.Age</td>
+                    <td>@(client.Email ?? "—")</td>
+                    <td>@(client.Phone ?? "—")</td>
+                    <td>
+                        <a asp-action="Details" asp-route-id="@client.Id">Detail</a>
+                        <a asp-action="Edit" asp-route-id="@client.Id">Upravit</a>
+                        <button type="button"
+                                class="btn btn-danger btn-sm"
+                                data-bs-toggle="modal"
+                                data-bs-target="#deleteModal"
+                                data-id="@client.Id"
+                                data-contracts="@(client.Contracts?.Count ?? 0)">
+                            Smazat
+                        </button>
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>
+
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Potvrdit smazání</h5>
+            </div>
+            <form method="post" asp-action="Delete">
+                <div class="modal-body">
+                    <p>Opravdu chcete smazat tohoto klienta?</p>
+
+                    <div id="contractsWarning" class="alert alert-warning d-none">
+                        <strong>Pozor!</strong> Tento klient má u nás <span id="contractsCount">0</span> smluv.
+                        Pokud ho smažete, musíte s ním smazat i tyto smlouvy.
+
+                        <div class="form-check mt-3">
+                            <input class="form-check-input" type="checkbox" id="deleteContracts" name="deleteContracts" value="true">
+                            <label class="form-check-label text-danger fw-bold" for="deleteContracts">
+                                Rozumím a chci nenávratně smazat i tyto smlouvy
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Zrušit</button>
+                    <input type="hidden" id="deleteId" name="id" />
+                    <button type="submit" id="confirmDeleteBtn" class="btn btn-danger">Smazat</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $('#deleteModal').on('show.bs.modal', function (e) {
+            const $button = $(e.relatedTarget);
+            const clientId = $button.data('id');
+            const contractsCount = parseInt($button.data('contracts')) || 0;
+
+            $('#deleteId').val(clientId);
+
+            const $warningDiv = $('#contractsWarning');
+            const $checkbox = $('#deleteContracts');
+            const $submitBtn = $('#confirmDeleteBtn');
+
+            $checkbox.prop('checked', false);
+
+            if (contractsCount > 0) {
+                $warningDiv.removeClass('d-none');
+                $('#contractsCount').text(contractsCount);
+                $submitBtn.prop('disabled', true);
+
+                $checkbox.off('change').on('change', function () {
+                    $submitBtn.prop('disabled', !$(this).is(':checked'));
+                });
+            } else {
+                $warningDiv.addClass('d-none');
+                $submitBtn.prop('disabled', false);
+            }
+        });
+    </script>
+}

@@ -1,0 +1,68 @@
+﻿@model CrmApp.Models.Contract
+
+<h1>Detail smlouvy: @Model.RegistrationNumber</h1>
+
+<div>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-3">@Html.DisplayNameFor(model => model.RegistrationNumber)</dt>
+        <dd class="col-sm-9">@Model.RegistrationNumber</dd>
+
+        <dt class="col-sm-3">@Html.DisplayNameFor(model => model.Institution)</dt>
+        <dd class="col-sm-9">@Model.Institution</dd>
+
+        <dt class="col-sm-3">Klient</dt>
+        <dd class="col-sm-9">
+            @if (Model.Client != null)
+            {
+                <a asp-controller="Clients" asp-action="Details" asp-route-id="@Model.ClientId">
+                    @Model.Client.FirstName @Model.Client.LastName
+                </a>
+            }
+        </dd>
+
+        <dt class="col-sm-3">Správce (Poradce)</dt>
+        <dd class="col-sm-9">
+            @if (Model.Manager != null)
+            {
+                <a asp-controller="Advisors" asp-action="Details" asp-route-id="@Model.ManagerId">
+                    @Model.Manager.FirstName @Model.Manager.LastName
+                </a>
+            }
+        </dd>
+        <dt class="col-sm-3">Účastníci na smlouvě</dt>
+        <dd class="col-sm-9">
+            @if (Model.Participants != null && Model.Participants.Any())
+            {
+                <ul class="list-unstyled mb-0">
+                    @foreach (var p in Model.Participants)
+                    {
+                        <li>
+                            <a asp-controller="Advisors" asp-action="Details" asp-route-id="@p.Id">
+                                @p.FirstName @p.LastName
+                            </a>
+                        </li>
+                    }
+                </ul>
+            }
+            else
+            {
+                <span class="text-muted">Žádní další účastníci</span>
+            }
+        </dd>
+
+        <dt class="col-sm-3">@Html.DisplayNameFor(model => model.SignedDate)</dt>
+        <dd class="col-sm-9">@Model.SignedDate.ToShortDateString()</dd>
+
+        <dt class="col-sm-3">@Html.DisplayNameFor(model => model.EffectiveDate)</dt>
+        <dd class="col-sm-9">@Model.EffectiveDate.ToShortDateString()</dd>
+
+        <dt class="col-sm-3">@Html.DisplayNameFor(model => model.EndDate)</dt>
+        <dd class="col-sm-9">@(Model.EndDate?.ToShortDateString() ?? "Na dobu neurčitou")</dd>
+    </dl>
+</div>
+
+<div class="mt-4">
+    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">Upravit</a>
+    <a asp-action="Index" class="btn btn-secondary">Zpět</a>
+</div>

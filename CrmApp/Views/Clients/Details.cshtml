@@ -1,0 +1,61 @@
+﻿@model CrmApp.Models.Client
+
+<h1>Detail klienta</h1>
+
+<div>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-2">@Html.DisplayNameFor(model => model.FirstName)</dt>
+        <dd class="col-sm-10">@Model.FirstName</dd>
+
+        <dt class="col-sm-2">@Html.DisplayNameFor(model => model.LastName)</dt>
+        <dd class="col-sm-10">@Model.LastName</dd>
+
+        <dt class="col-sm-2">@Html.DisplayNameFor(model => model.BirthNumber)</dt>
+        <dd class="col-sm-10">@Model.BirthNumber</dd>
+
+        <dt class="col-sm-2">@Html.DisplayNameFor(model => model.Age)</dt>
+        <dd class="col-sm-10">@Model.Age</dd>
+
+        <dt class="col-sm-2">@Html.DisplayNameFor(model => model.Email)</dt>
+        <dd class="col-sm-10">@(Model.Email ?? "—")</dd>
+
+        <dt class="col-sm-2">@Html.DisplayNameFor(model => model.Phone)</dt>
+        <dd class="col-sm-10">@(Model.Phone ?? "—")</dd>
+    </dl>
+</div>
+
+<h3 class="mt-4">Smlouvy klienta</h3>
+@if (Model.Contracts != null && Model.Contracts.Any())
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Evidenční číslo</th>
+                <th>Instituce</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var contract in Model.Contracts)
+            {
+                <tr>
+                    <td>@contract.RegistrationNumber</td>
+                    <td>@contract.Institution</td>
+                    <td>
+                        <a asp-controller="Contracts" asp-action="Details" asp-route-id="@contract.Id">Detail smlouvy</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p class="text-muted">Tento klient zatím nemá přiřazené žádné smlouvy.</p>
+}
+
+<div class="mt-3">
+    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">Upravit</a>
+    <a asp-action="Index" class="btn btn-secondary">Zpět</a>
+</div>

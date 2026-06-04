@@ -6,6 +6,32 @@ Základní CRM (Customer Relationship Management) systém navržený pro správu
 
 ## Uživatelská dokumentace
 
+Webová aplikace. Uživatelské rozhraní se skládá z hlavní horní navigační lišty a pracovního prostoru pro správu jednotlivých záznamů.
+
+### Hlavní navigace
+V horní tmavé liště (Navbar) se nachází odkazy na tři hlavní moduly aplikace:
+* **Klienti:** Správa osobních údajů klientů.
+* **Poradci:** Správa osobních údajů poradců.
+* **Smlouvy:** Správa smluv a jejich provázání s klienty a poradci.
+
+### Práce se záznamy (Seznamy a Detaily)
+Po kliknutí na libovolný modul se zobrazí **přehledová tabulka** se všemi uloženými záznamy.
+* Pokud je databáze prázdná, aplikace uživatele informuje textem (např. *"Zatím nejsou uloženy žádné smlouvy."*).
+* V pravé části každého řádku se nachází tlačítka pro práci s konkrétním záznamem.
+* Tlačítko **Detail** otevře kartu s kompletními informacemi. Z detailu klienta se např. lze přesunout na detail jeho smlouvy a z detailu smlouvy rovnou na kartu jejího správce.
+
+### Vytváření a úprava záznamů
+Formuláře pro vytvoření (tlačítko **Přidat...**) i pro úpravu záznamů obsahují okamžitou validaci (kontrolu chyb). Pokud uživatel nezadá povinný údaj nebo vloží text ve špatném formátu (např. neplatný e-mail), systém jej na to upozorní červeným textem přímo pod konkrétním políčkem a zamezí uložení.
+
+**Specifika pro smlouvy:**
+Při vytváření a úpravě smluv uživatel vybírá existující osoby ze seznamů:
+* **Klient a Správce smlouvy:** Vybírají se z menu (dropdown).
+* **Účastníci (Poradci):** Umožňují vícenásobný výběr (multi-select). Pro výběr nebo zrušení výběru více osob najednou stačí držet klávesu `CTRL` a zvolit jednotlivá jména.
+Systém striktně vyžaduje, aby osoba zvolená jako **Správce smlouvy** byla zároveň označena i mezi jejími **Účastníky**. 
+
+### Bezpečné mazání
+Pro smazání záznamu slouží červené tlačítko **Smazat** v přehledových tabulkách. Aplikace využívá modální (vyskakovací) okno. Pokud se uživatel pokusí smazat klienta nebo poradce, na kterého jsou aktuálně navázány aktivní smlouvy, systém jej na to varovně upozorní. Pro smazání takové osoby musí uživatel explicitně zaškrtnout potvrzovací políčko, čímž dojde ke kaskádovému smazání souvisejících smluv a je tak zachována referenční integrita databáze.
+
 ---
 
 ## Technická dokumentace
