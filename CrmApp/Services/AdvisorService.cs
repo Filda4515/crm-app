@@ -1,5 +1,6 @@
 ﻿using CrmApp.Data;
 using CrmApp.Models;
+using CrmApp.Models.Queries;
 
 using Microsoft.EntityFrameworkCore;
 
@@ -39,9 +40,32 @@ public class AdvisorService(CrmDbContext context) : IAdvisorService
             .FirstOrDefault(c => c.Id == id);
     }
 
-    public IEnumerable<Advisor> GetAllAdvisors()
+    public IEnumerable<Advisor> GetAllAdvisors(PersonQuery? query = null)
     {
-        return [.. context.Advisors.Include(a => a.ManagedContracts)];
+        var q = context.Advisors
+            .Include(a => a.ManagedContracts)
+            .AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(query?.Search))
+        {
+            var search = query.Search.Trim();
+            q = q.Where(a =>
+                a.FirstName.Contains(search) ||
+                a.LastName.Contains(search) ||
+                a.BirthNumber.Contains(search));
+        }
+
+        q = query?.SortBy switch
+        {
+            "lastNameDesc" => q.OrderByDescending(c => c.LastName).ThenBy(c => c.FirstName),
+            "firstName" => q.OrderBy(c => c.FirstName).ThenBy(c => c.LastName),
+            "firstNameDesc" => q.OrderByDescending(c => c.FirstName).ThenBy(c => c.LastName),
+            "birthNumber" => q.OrderBy(c => c.BirthNumber),
+            "birthNumberDesc" => q.OrderByDescending(c => c.BirthNumber),
+            _ => q.OrderBy(c => c.LastName).ThenBy(c => c.FirstName)
+        };
+
+        return [.. q];
     }
 
     public void UpdateAdvisor(Advisor advisor)

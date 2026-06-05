@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 
-using CrmApp.Models;
+using CrmApp.Models.ViewModels;
 
 using Microsoft.AspNetCore.Mvc;
 

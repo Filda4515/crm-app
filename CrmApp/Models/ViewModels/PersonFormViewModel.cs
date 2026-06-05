@@ -2,7 +2,7 @@
 
 using CrmApp.Extensions;
 
-namespace CrmApp.Models;
+namespace CrmApp.Models.ViewModels;
 
 public abstract class PersonFormViewModel : IValidatableObject
 {

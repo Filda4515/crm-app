@@ -1,5 +1,7 @@
 ﻿using CrmApp.Controllers;
 using CrmApp.Models;
+using CrmApp.Models.Queries;
+using CrmApp.Models.ViewModels;
 using CrmApp.Services;
 
 using Microsoft.AspNetCore.Http;
@@ -50,12 +52,12 @@ public class AdvisorsControllerTests
         var controller = CreateController(mockService);
 
         // Act
-        var result = controller.Index();
+        var result = controller.Index(new PersonQuery());
 
         // Assert
         var viewResult = Assert.IsType<ViewResult>(result);
-        var model = Assert.IsType<IEnumerable<Advisor>>(viewResult.ViewData.Model, exactMatch: false);
-        Assert.Single(model);
+        var model = Assert.IsType<AdvisorIndexViewModel>(viewResult.Model);
+        Assert.NotNull(model.Advisors);
     }
 
     [Fact]

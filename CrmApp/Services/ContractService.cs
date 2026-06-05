@@ -1,5 +1,6 @@
 ﻿using CrmApp.Data;
 using CrmApp.Models;
+using CrmApp.Models.Queries;
 
 using Microsoft.EntityFrameworkCore;
 
@@ -32,14 +33,49 @@ public class ContractService(CrmDbContext context) : IContractService
             .FirstOrDefault(c => c.Id == id);
     }
 
-    public IEnumerable<Contract> GetAllContracts()
+    public IEnumerable<Contract> GetAllContracts(ContractQuery? query = null)
     {
-        return [.. context.Contracts
+        var q = context.Contracts
             .Include(c => c.Client)
             .Include(c => c.Manager)
-            ];
-    }
+            .Include(c => c.Participants)
+            .AsQueryable();
 
+        if (!string.IsNullOrWhiteSpace(query?.Search))
+        {
+            var search = query.Search.Trim();
+            q = q.Where(c =>
+                c.RegistrationNumber.Contains(search) ||
+                c.Institution.Contains(search) ||
+                (c.Client != null && (
+                    c.Client.FirstName.Contains(search) ||
+                    c.Client.LastName.Contains(search))) ||
+                (c.Manager != null && (
+                    c.Manager.FirstName.Contains(search) ||
+                    c.Manager.LastName.Contains(search))));
+        }
+
+        if (query?.HideInactive == true)
+            q = q.Where(c => c.EndDate == null || c.EndDate > DateTime.Today);
+
+        q = query?.SortBy switch
+        {
+            "signedDateAsc" => q.OrderBy(c => c.SignedDate),
+            "registrationNumber" => q.OrderBy(c => c.RegistrationNumber),
+            "registrationNumberDesc" => q.OrderByDescending(c => c.RegistrationNumber),
+            "institution" => q.OrderBy(c => c.Institution).ThenBy(c => c.RegistrationNumber),
+            "institutionDesc" => q.OrderByDescending(c => c.Institution).ThenBy(c => c.RegistrationNumber),
+            "effectiveDate" => q.OrderBy(c => c.EffectiveDate),
+            "effectiveDateDesc" => q.OrderByDescending(c => c.EffectiveDate),
+            "client" => q.OrderBy(c => c.Client!.LastName).ThenBy(c => c.Client!.FirstName),
+            "clientDesc" => q.OrderByDescending(c => c.Client!.LastName).ThenBy(c => c.Client!.FirstName),
+            "manager" => q.OrderBy(c => c.Manager!.LastName).ThenBy(c => c.Manager!.FirstName),
+            "managerDesc" => q.OrderByDescending(c => c.Manager!.LastName).ThenBy(c => c.Manager!.FirstName),
+            _ => q.OrderByDescending(c => c.SignedDate)
+        };
+
+        return [.. q];
+    }
 
     public void UpdateContract(Contract contract)
     {

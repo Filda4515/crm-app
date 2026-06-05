@@ -1,5 +1,7 @@
 ﻿using CrmApp.Controllers;
 using CrmApp.Models;
+using CrmApp.Models.Queries;
+using CrmApp.Models.ViewModels;
 using CrmApp.Services;
 
 using Microsoft.AspNetCore.Mvc;
@@ -57,12 +59,12 @@ public class ContractsControllerTests
         var controller = CreateController(mockContract, mockClient, mockAdvisor);
 
         // Act
-        var result = controller.Index();
+        var result = controller.Index(new ContractQuery());
 
         // Assert
         var viewResult = Assert.IsType<ViewResult>(result);
-        var model = Assert.IsType<IEnumerable<Contract>>(viewResult.ViewData.Model, exactMatch: false);
-        Assert.Single(model);
+        var model = Assert.IsType<ContractIndexViewModel>(viewResult.Model);
+        Assert.NotNull(model.Contracts);
     }
 
     [Fact]

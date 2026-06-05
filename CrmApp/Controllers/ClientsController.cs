@@ -1,5 +1,7 @@
 ﻿using CrmApp.Extensions;
 using CrmApp.Models;
+using CrmApp.Models.Queries;
+using CrmApp.Models.ViewModels;
 using CrmApp.Services;
 
 using Microsoft.AspNetCore.Mvc;
@@ -10,10 +12,14 @@ namespace CrmApp.Controllers;
 public class ClientsController(IClientService clientService) : Controller
 {
     // GET: ClientsController
-    public ActionResult Index()
+    public ActionResult Index(PersonQuery query)
     {
-        var clients = clientService.GetAllClients();
-        return View(clients);
+        var vm = new ClientIndexViewModel
+        {
+            Clients = clientService.GetAllClients(query),
+            Query = query
+        };
+        return View(vm);
     }
 
     // GET: ClientsController/Details/5

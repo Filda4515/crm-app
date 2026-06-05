@@ -15,10 +15,12 @@ V horní tmavé liště (Navbar) se nachází odkazy na tři hlavní moduly apli
 * **Smlouvy:** Správa smluv a jejich provázání s klienty a poradci.
 
 ### Práce se záznamy (Seznamy a Detaily)
-Po kliknutí na libovolný modul se zobrazí **přehledová tabulka** se všemi uloženými záznamy.
-* Pokud je databáze prázdná, aplikace uživatele informuje textem (např. *"Zatím nejsou uloženy žádné smlouvy."*).
-* V pravé části každého řádku se nachází tlačítka pro práci s konkrétním záznamem.
-* Tlačítko **Detail** otevře kartu s kompletními informacemi. Z detailu klienta se např. lze přesunout na detail jeho smlouvy a z detailu smlouvy rovnou na kartu jejího správce.
+Po kliknutí na libovolný modul se zobrazí **přehledová tabulka** s uloženými záznamy. Aplikace poskytuje pokročilé nástroje pro snadnou orientaci v datech:
+* **Vyhledávání:** Nad každou tabulkou se nachází textové pole pro vyhledávání (podle jména, příjmení, rodného čísla, instituce či evidenčního čísla). Vyhledávání **ignoruje velikost písmen i diakritiku** (např. dotaz "bezny" bez problémů najde záznam "Běžný").
+* **Řazení (Sorting):** Záznamy lze interaktivně řadit kliknutím na názvy sloupců v hlavičce tabulky. Opakovaným kliknutím se mění směr řazení (vzestupně ▲ / sestupně ▼).
+* **Filtrování smluv:** V modulu Smlouvy je navíc k dispozici speciální filtr *„Skrýt neaktivní (vypršelé)“*, který vyfiltruje smlouvy, jejichž datum konce platnosti již uplynulo.
+* Pokud je databáze prázdná, nebo zadaným filtrům neodpovídá žádný záznam, aplikace na to uživatele upozorní.
+* V pravé části každého řádku se nachází akční tlačítka. Tlačítko **Detail** otevře kartu s kompletními informacemi. Díky provázanosti databáze se lze např. z detailu klienta prokliknout rovnou na detail jeho smlouvy a odtud přímo na kartu správce dané smlouvy.
 
 ### Vytváření a úprava záznamů
 Formuláře pro vytvoření (tlačítko **Přidat...**) i pro úpravu záznamů obsahují okamžitou validaci (kontrolu chyb). Pokud uživatel nezadá povinný údaj nebo vloží text ve špatném formátu (např. neplatný e-mail), systém jej na to upozorní červeným textem přímo pod konkrétním políčkem a zamezí uložení.
@@ -50,10 +52,10 @@ Aplikace obsluhuje CRUD operace pro každou z hlavních entit (`Clients`, `Advis
 * **`POST /{Entita}/Delete/{id}`:** Smazání záznamu.
 
 ### Architektura a vrstvy
-* **Modely a ViewModels:** Aplikace odděluje databázové doménové modely (`Client`, `Advisor`, `Contract`) od view modelů (`ClientFormViewModel`, `AdvisorFormViewModel`, `ContractFormViewModel`). Doménové modely definují strukturu pro SQL databázi, ViewModely slouží jako mezivrstva mezi formuláři a databázovými modely. Modely pro osoby navíc sdílejí logiku pomocí dědičnosti ze společné abstraktní třídy `PersonFormViewModel`.
-* **Služby (Services):** Obsahují hlavní logiku aplikace (`IClientService`, `IAdvisorService`, `IContractService`). Zajišťují veškeré CRUD operace a oddělují kontrolery od přímého přístupu k datům.
-* **Kontrolery (Controllers):** Zajišťují HTTP směrování. Zpracovávají vstupy, kontrolují validitu dat (`ModelState.IsValid`) a komunikují se službami. `ErrorsController` slouží pro globální odchytávání chyb v produkčním prostředí.
-* **Databáze (Data):** Využívá **Entity Framework Core** napojený na **MS SQL Server Express**. Využívá EF Migrací a seeding dat.
+* **Modely a ViewModels:** Aplikace odděluje databázové doménové modely (`Client`, `Advisor`, `Contract`) od view modelů (`ClientFormViewModel`, `AdvisorFormViewModel` atd.). ViewModely slouží jako bezpečená mezivrstva mezi UI a databází. Pro zapouzdření parametrů vyhledávání, řazení a filtrování jsou navíc využívány dedikované Query objekty (`PersonQuery`, `ContractQuery`).
+* **Služby (Services):** Obsahují hlavní byznys logiku aplikace (`IClientService`, `IAdvisorService`, `IContractService`). Zajišťují veškeré CRUD operace, aplikují filtry, řeší bezpečné řazení dat a oddělují kontrolery od přímého přístupu k databázi.
+* **Kontrolery (Controllers):** Zajišťují HTTP směrování. Zpracovávají vstupy z pohledů, kontrolují validitu dat (`ModelState.IsValid`) a delegují práci na služby. `ErrorsController` slouží pro globální odchytávání chyb v produkčním prostředí.
+* **Databáze (Data):** Využívá **Entity Framework Core** napojený na **MS SQL Server Express**. Kód využívá EF Migrace a seeding dat pro konzistenci. Pro zajištění komfortního vyhledávání je na úrovni databáze globálně vynucena kolace `Latin1_General_CI_AI`, která zajišťuje ignorování diakritiky a velikosti písmen při databázových dotazech.
 
 ### Testování
 Testy jsou postaveny na frameworku **xUnit** ve spojení s knihovnou **Moq** a slouží k vývoji pomocí metody TDD (Test-Driven Development).

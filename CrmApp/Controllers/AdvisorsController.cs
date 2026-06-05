@@ -1,5 +1,7 @@
 ﻿using CrmApp.Extensions;
 using CrmApp.Models;
+using CrmApp.Models.Queries;
+using CrmApp.Models.ViewModels;
 using CrmApp.Services;
 
 using Microsoft.AspNetCore.Mvc;
@@ -10,10 +12,14 @@ namespace CrmApp.Controllers;
 public class AdvisorsController(IAdvisorService advisorService) : Controller
 {
     // GET: AdvisorsController
-    public ActionResult Index()
+    public ActionResult Index(PersonQuery query)
     {
-        var advisors = advisorService.GetAllAdvisors();
-        return View(advisors);
+        var vm = new AdvisorIndexViewModel
+        {
+            Advisors = advisorService.GetAllAdvisors(query),
+            Query = query
+        };
+        return View(vm);
     }
 
     // GET: AdvisorsController/Details/5

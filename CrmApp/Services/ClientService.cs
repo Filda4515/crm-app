@@ -1,5 +1,6 @@
 ﻿using CrmApp.Data;
 using CrmApp.Models;
+using CrmApp.Models.Queries;
 
 using Microsoft.EntityFrameworkCore;
 
@@ -38,9 +39,32 @@ public class ClientService(CrmDbContext context) : IClientService
             .FirstOrDefault(c => c.Id == id);
     }
 
-    public IEnumerable<Client> GetAllClients()
+    public IEnumerable<Client> GetAllClients(PersonQuery? query = null)
     {
-        return [.. context.Clients.Include(c => c.Contracts)];
+        var q = context.Clients
+            .Include(c => c.Contracts)
+            .AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(query?.Search))
+        {
+            var search = query.Search.Trim();
+            q = q.Where(c =>
+                c.FirstName.Contains(search) ||
+                c.LastName.Contains(search) ||
+                c.BirthNumber.Contains(search));
+        }
+
+        q = query?.SortBy switch
+        {
+            "lastNameDesc" => q.OrderByDescending(c => c.LastName).ThenBy(c => c.FirstName),
+            "firstName" => q.OrderBy(c => c.FirstName).ThenBy(c => c.LastName),
+            "firstNameDesc" => q.OrderByDescending(c => c.FirstName).ThenBy(c => c.LastName),
+            "birthNumber" => q.OrderBy(c => c.BirthNumber),
+            "birthNumberDesc" => q.OrderByDescending(c => c.BirthNumber),
+            _ => q.OrderBy(c => c.LastName).ThenBy(c => c.FirstName)
+        };
+
+        return [.. q];
     }
 
     public void UpdateClient(Client client)

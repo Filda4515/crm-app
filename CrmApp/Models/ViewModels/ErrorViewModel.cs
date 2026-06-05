@@ -1,4 +1,4 @@
-namespace CrmApp.Models;
+namespace CrmApp.Models.ViewModels;
 
 public class ErrorViewModel
 {

@@ -1,29 +1,100 @@
-﻿@model IEnumerable<CrmApp.Models.Contract>
+﻿@model CrmApp.Models.ViewModels.ContractIndexViewModel
 
 <h1>Smlouvy</h1>
+
+<form method="get" class="row g-2 mb-4 align-items-center">
+    <div class="col-auto">
+        <input asp-for="Query.Search" class="form-control" placeholder="Hledat evidenční číslo, instituci..." />
+    </div>
+    <div class="col-auto form-check ms-3 mt-3">
+        <input asp-for="Query.HideInactive" class="form-check-input" />
+        <label asp-for="Query.HideInactive" class="form-check-label">Skrýt neaktivní (vypršelé)</label>
+    </div>
+    <div class="col-auto ms-2">
+        <button type="submit" class="btn btn-primary">Filtrovat</button>
+        <a asp-action="Index" class="btn btn-outline-secondary">Zrušit</a>
+    </div>
+</form>
+
 <a asp-action="Create" class="btn btn-primary mb-3">Přidat smlouvu</a>
 
 <table class="table">
     <thead>
         <tr>
-            <th>Evidenční číslo</th>
-            <th>Instituce</th>
-            <th>Klient</th>
-            <th>Správce</th>
-            <th>Platnost od</th>
+            <th>
+                <a asp-action="Index"
+                   asp-route-search="@Model.Query.Search"
+                   asp-route-hideInactive="@Model.Query.HideInactive"
+                   asp-route-sortBy="@(Model.Query.SortBy == "registrationNumber" ? "registrationNumberDesc" : "registrationNumber")"
+                   class="text-decoration-none text-dark sort-link">
+                    Evidenční číslo
+                    @(Model.Query.SortBy == "registrationNumber" ? "▲" : Model.Query.SortBy == "registrationNumberDesc" ? "▼" : "")
+                </a>
+            </th>
+            <th>
+                <a asp-action="Index"
+                   asp-route-search="@Model.Query.Search"
+                   asp-route-hideInactive="@Model.Query.HideInactive"
+                   asp-route-sortBy="@(Model.Query.SortBy == "institution" ? "institutionDesc" : "institution")"
+                   class="text-decoration-none text-dark sort-link">
+                    Instituce
+                    @(Model.Query.SortBy == "institution" ? "▲" : Model.Query.SortBy == "institutionDesc" ? "▼" : "")
+                </a>
+            </th>
+            <th>
+                <a asp-action="Index"
+                   asp-route-search="@Model.Query.Search"
+                   asp-route-hideInactive="@Model.Query.HideInactive"
+                   asp-route-sortBy="@(Model.Query.SortBy == "client" ? "clientDesc" : "client")"
+                   class="text-decoration-none text-dark sort-link">
+                    Klient
+                    @(Model.Query.SortBy == "client" ? "▲" : Model.Query.SortBy == "clientDesc" ? "▼" : "")
+                </a>
+            </th>
+            <th>
+                <a asp-action="Index"
+                   asp-route-search="@Model.Query.Search"
+                   asp-route-hideInactive="@Model.Query.HideInactive"
+                   asp-route-sortBy="@(Model.Query.SortBy == "manager" ? "managerDesc" : "manager")"
+                   class="text-decoration-none text-dark sort-link">
+                    Správce
+                    @(Model.Query.SortBy == "manager" ? "▲" : Model.Query.SortBy == "managerDesc" ? "▼" : "")
+                </a>
+            </th>
+            <th>
+                <a asp-action="Index"
+                   asp-route-search="@Model.Query.Search"
+                   asp-route-hideInactive="@Model.Query.HideInactive"
+                   asp-route-sortBy="@(Model.Query.SortBy == "effectiveDate" ? "effectiveDateDesc" : "effectiveDate")"
+                   class="text-decoration-none text-dark sort-link">
+                    Platnost od
+                    @(Model.Query.SortBy == "effectiveDate" ? "▲" : Model.Query.SortBy == "effectiveDateDesc" ? "▼" : "")
+                </a>
+            </th>
             <th></th>
         </tr>
     </thead>
     <tbody>
-        @if (!Model.Any())
+        @if (!Model.Contracts.Any())
         {
+            var hasFilters = !string.IsNullOrWhiteSpace(Model.Query.Search) || Model.Query.HideInactive;
+
             <tr>
-                <td colspan="6" class="text-center text-muted">Zatím nejsou uloženy žádné smlouvy.</td>
+                <td colspan="6" class="text-center text-muted py-4">
+                    @if (hasFilters)
+                    {
+                        <span>Zadaným filtrům neodpovídají žádné smlouvy.</span>
+                    }
+                    else
+                    {
+                        <span>Zatím nejsou uloženy žádné smlouvy.</span>
+                    }
+                </td>
             </tr>
         }
         else
         {
-            @foreach (var contract in Model)
+            @foreach (var contract in Model.Contracts)
             {
                 <tr>
                     <td>@contract.RegistrationNumber</td>

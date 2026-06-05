@@ -1,14 +1,49 @@
-﻿@model IEnumerable<CrmApp.Models.Client>
+﻿@model CrmApp.Models.ViewModels.ClientIndexViewModel
 
 <h1>Klienti</h1>
+
+<form method="get" class="row g-2 mb-4 align-items-center">
+    <div class="col-auto">
+        <input asp-for="Query.Search" class="form-control" placeholder="Hledat jméno, RČ..." />
+    </div>
+    <div class="col-auto">
+        <button type="submit" class="btn btn-primary">Filtrovat</button>
+        <a asp-action="Index" class="btn btn-outline-secondary">Zrušit</a>
+    </div>
+</form>
+
 <a asp-action="Create" class="btn btn-primary mb-3">Přidat klienta</a>
 
 <table class="table">
     <thead>
         <tr>
-            <th>Jméno</th>
-            <th>Příjmení</th>
-            <th>Rodné číslo</th>
+            <th>
+                <a asp-action="Index"
+                   asp-route-search="@Model.Query.Search"
+                   asp-route-sortBy="@(Model.Query.SortBy == "firstName" ? "firstNameDesc" : "firstName")"
+                   class="text-decoration-none text-dark sort-link">
+                    Jméno
+                    @(Model.Query.SortBy == "firstName" ? "▲" : Model.Query.SortBy == "firstNameDesc" ? "▼" : "")
+                </a>
+            </th>
+            <th>
+                <a asp-action="Index"
+                   asp-route-search="@Model.Query.Search"
+                   asp-route-sortBy="@(Model.Query.SortBy == "lastName" ? "lastNameDesc" : "lastName")"
+                   class="text-decoration-none text-dark sort-link">
+                    Příjmení
+                    @(Model.Query.SortBy == "lastName" ? "▲" : Model.Query.SortBy == "lastNameDesc" ? "▼" : "")
+                </a>
+            </th>
+            <th>
+                <a asp-action="Index"
+                   asp-route-search="@Model.Query.Search"
+                   asp-route-sortBy="@(Model.Query.SortBy == "birthNumber" ? "birthNumberDesc" : "birthNumber")"
+                   class="text-decoration-none text-dark sort-link">
+                    Rodné číslo
+                    @(Model.Query.SortBy == "birthNumber" ? "▲" : Model.Query.SortBy == "birthNumberDesc" ? "▼" : "")
+                </a>
+            </th>
             <th>Věk</th>
             <th>E-mail</th>
             <th>Telefon</th>
@@ -16,15 +51,19 @@
         </tr>
     </thead>
     <tbody>
-        @if (!Model.Any())
+        @if (!Model.Clients.Any())
         {
+            var hasFilters = !string.IsNullOrWhiteSpace(Model.Query.Search);
+
             <tr>
-                <td colspan="7" class="text-center text-muted">Zatím nejsou uloženi žádní klienti.</td>
+                <td colspan="7" class="text-center text-muted py-4">
+                    @(hasFilters ? "Zadaným filtrům neodpovídají žádní klienti." : "Zatím nejsou uloženi žádní klienti.")
+                </td>
             </tr>
         }
         else
         {
-            @foreach (var client in Model)
+            @foreach (var client in Model.Clients)
             {
                 <tr>
                     <td>@client.FirstName</td>

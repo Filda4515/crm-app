@@ -1,4 +1,6 @@
 ﻿using CrmApp.Models;
+using CrmApp.Models.Queries;
+using CrmApp.Models.ViewModels;
 using CrmApp.Services;
 
 using Microsoft.AspNetCore.Mvc;
@@ -8,10 +10,14 @@ namespace CrmApp.Controllers;
 public class ContractsController(IContractService contractService, IClientService clientService, IAdvisorService advisorService) : Controller
 {
     // GET: ContractsController
-    public ActionResult Index()
+    public ActionResult Index(ContractQuery query)
     {
-        var contracts = contractService.GetAllContracts();
-        return View(contracts);
+        var vm = new ContractIndexViewModel
+        {
+            Contracts = contractService.GetAllContracts(query),
+            Query = query
+        };
+        return View(vm);
     }
 
     // GET: ContractsController/Details/5
