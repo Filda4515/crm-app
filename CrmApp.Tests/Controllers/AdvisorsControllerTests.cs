@@ -267,4 +267,35 @@ public class AdvisorsControllerTests
         Assert.Equal(nameof(AdvisorsController.Index), redirectToActionResult.ActionName);
         Assert.NotNull(controller.TempData["ErrorMessage"]);
     }
+
+    [Fact]
+    public void ExportCsv_ShouldReturnCsvFileWithCorrectDataAndHandleNulls_WhenCalled()
+    {
+        // Arrange
+        var mockService = new Mock<IAdvisorService>();
+        var sampleAdvisors = new List<Advisor>
+        {
+            new() { Id = 1, FirstName = "Petr", LastName = "Obojí", BirthNumber = "850202/5678", Age = 41, Email = "petr@test.cz", Phone = "+420 987 654 321" },
+            new() { Id = 2, FirstName = "Pavel", LastName = "Prázdný", BirthNumber = "900101/0000", Age = 36, Email = null, Phone = null }
+        };
+
+        mockService.Setup(s => s.GetAllAdvisors(It.IsAny<PersonQuery>())).Returns(sampleAdvisors);
+
+        var controller = CreateController(mockService);
+        var query = new PersonQuery();
+
+        // Act
+        var result = controller.ExportCsv(query);
+
+        // Assert
+        var fileResult = Assert.IsType<FileContentResult>(result);
+        Assert.Equal("text/csv", fileResult.ContentType);
+        Assert.Equal("poradci.csv", fileResult.FileDownloadName);
+
+        var fileString = System.Text.Encoding.UTF8.GetString(fileResult.FileContents);
+
+        Assert.Contains("Jméno;Příjmení;Rodné číslo;Věk;E-mail;Telefon", fileString);
+        Assert.Contains("Petr;Obojí;850202/5678;41;petr@test.cz;+420 987 654 321", fileString);
+        Assert.Contains("Pavel;Prázdný;900101/0000;36;;", fileString);
+    }
 }

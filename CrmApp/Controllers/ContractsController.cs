@@ -154,4 +154,28 @@ public class ContractsController(IContractService contractService, IClientServic
         contractService.DeleteContract(id);
         return RedirectToAction(nameof(Index));
     }
+
+    // GET: ContractsController/ExportCsv
+    public ActionResult ExportCsv(ContractQuery query)
+    {
+        var contracts = contractService.GetAllContracts(query);
+
+        var sb = new System.Text.StringBuilder();
+        sb.AppendLine("Evidenční číslo;Instituce;Klient;Správce;Datum podpisu;Platnost od;Platnost do");
+
+        foreach (var c in contracts)
+        {
+            var clientName = c.Client != null ? $"{c.Client.FirstName} {c.Client.LastName}" : "";
+            var managerName = c.Manager != null ? $"{c.Manager.FirstName} {c.Manager.LastName}" : "";
+            var endDate = c.EndDate?.ToShortDateString() ?? "";
+
+            sb.AppendLine($"{c.RegistrationNumber};{c.Institution};{clientName};{managerName};{c.SignedDate.ToShortDateString()};{c.EffectiveDate.ToShortDateString()};{endDate}");
+        }
+
+        var bom = System.Text.Encoding.UTF8.GetPreamble();
+        var bytes = System.Text.Encoding.UTF8.GetBytes(sb.ToString());
+        var fileBytes = bom.Concat(bytes).ToArray();
+
+        return File(fileBytes, "text/csv", "smlouvy.csv");
+    }
 }

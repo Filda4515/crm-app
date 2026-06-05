@@ -133,4 +133,24 @@ public class AdvisorsController(IAdvisorService advisorService) : Controller
             return RedirectToAction(nameof(Index));
         }
     }
+
+    // GET: AdvisorsController/ExportCsv
+    public ActionResult ExportCsv(PersonQuery query)
+    {
+        var advisors = advisorService.GetAllAdvisors(query);
+
+        var sb = new System.Text.StringBuilder();
+        sb.AppendLine("Jméno;Příjmení;Rodné číslo;Věk;E-mail;Telefon");
+
+        foreach (var a in advisors)
+        {
+            sb.AppendLine($"{a.FirstName};{a.LastName};{a.BirthNumber};{a.Age};{a.Email ?? ""};{a.Phone ?? ""}");
+        }
+
+        var bom = System.Text.Encoding.UTF8.GetPreamble();
+        var bytes = System.Text.Encoding.UTF8.GetBytes(sb.ToString());
+        var fileBytes = bom.Concat(bytes).ToArray();
+
+        return File(fileBytes, "text/csv", "poradci.csv");
+    }
 }

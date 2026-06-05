@@ -133,4 +133,24 @@ public class ClientsController(IClientService clientService) : Controller
             return RedirectToAction(nameof(Index));
         }
     }
+
+    // GET: ClientsController/ExportCsv
+    public ActionResult ExportCsv(PersonQuery query)
+    {
+        var clients = clientService.GetAllClients(query);
+
+        var sb = new System.Text.StringBuilder();
+        sb.AppendLine("Jméno;Příjmení;Rodné číslo;Věk;E-mail;Telefon");
+
+        foreach (var c in clients)
+        {
+            sb.AppendLine($"{c.FirstName};{c.LastName};{c.BirthNumber};{c.Age};{c.Email ?? ""};{c.Phone ?? ""}");
+        }
+
+        var bom = System.Text.Encoding.UTF8.GetPreamble();
+        var bytes = System.Text.Encoding.UTF8.GetBytes(sb.ToString());
+        var fileBytes = bom.Concat(bytes).ToArray();
+
+        return File(fileBytes, "text/csv", "klienti.csv");
+    }
 }

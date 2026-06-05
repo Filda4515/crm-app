@@ -270,4 +270,35 @@ public class ClientsControllerTests
         Assert.Equal(nameof(ClientsController.Index), redirectToActionResult.ActionName);
         Assert.NotNull(controller.TempData["ErrorMessage"]);
     }
+
+    [Fact]
+    public void ExportCsv_ShouldReturnCsvFileWithCorrectDataAndHandleNulls_WhenCalled()
+    {
+        // Arrange
+        var mockService = new Mock<IClientService>();
+        var sampleClients = new List<Client>
+        {
+            new() { Id = 1, FirstName = "Jan", LastName = "Běžný", BirthNumber = "960101/1234", Age = 30, Email = "jan@test.cz", Phone = "+420 123 456" },
+            new() { Id = 2, FirstName = "Alena", LastName = "Prázdná", BirthNumber = "955555/5555", Age = 28, Email = null, Phone = null }
+        };
+
+        mockService.Setup(s => s.GetAllClients(It.IsAny<PersonQuery>())).Returns(sampleClients);
+
+        var controller = CreateController(mockService);
+        var query = new PersonQuery();
+
+        // Act
+        var result = controller.ExportCsv(query);
+
+        // Assert
+        var fileResult = Assert.IsType<FileContentResult>(result);
+        Assert.Equal("text/csv", fileResult.ContentType);
+        Assert.Equal("klienti.csv", fileResult.FileDownloadName);
+
+        var fileString = System.Text.Encoding.UTF8.GetString(fileResult.FileContents);
+
+        Assert.Contains("Jméno;Příjmení;Rodné číslo;Věk;E-mail;Telefon", fileString);
+        Assert.Contains("Jan;Běžný;960101/1234;30;jan@test.cz;+420 123 456", fileString);
+        Assert.Contains("Alena;Prázdná;955555/5555;28;;", fileString);
+    }
 }

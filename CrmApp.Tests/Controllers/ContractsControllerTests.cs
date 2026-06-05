@@ -281,4 +281,58 @@ public class ContractsControllerTests
         Assert.Equal(nameof(ContractsController.Index), redirectToActionResult.ActionName);
         mockContract.Verify(s => s.DeleteContract(targetId), Times.Once);
     }
+
+    [Fact]
+    public void ExportCsv_ShouldReturnCsvFileWithCorrectDataAndHandleNulls_WhenCalled()
+    {
+        // Arrange
+        var mockContractService = new Mock<IContractService>();
+        var mockClientService = new Mock<IClientService>();
+        var mockAdvisorService = new Mock<IAdvisorService>();
+
+        var client = new Client { Id = 1, FirstName = "Jan", LastName = "Běžný", BirthNumber = "960101/1234", Age = 30 };
+        var manager = new Advisor { Id = 1, FirstName = "Petr", LastName = "Obojí", BirthNumber = "850202/5678", Age = 41 };
+
+        var sampleContracts = new List<Contract>
+        {
+            new() {
+                Id = 1,
+                RegistrationNumber = "2024/099",
+                Institution = "Komerční banka",
+                Client = client,
+                Manager = manager,
+                SignedDate = new DateTime(2024, 1, 15),
+                EffectiveDate = new DateTime(2024, 2, 1),
+                EndDate = new DateTime(2025, 12, 31)
+            },
+            new() {
+                Id = 2,
+                RegistrationNumber = "2026/001",
+                Institution = "ČSOB",
+                Client = client, Manager = manager,
+                SignedDate = new DateTime(2026, 6, 7),
+                EffectiveDate = new DateTime(2026, 7, 7),
+                EndDate = null
+            }
+        };
+
+        mockContractService.Setup(s => s.GetAllContracts(It.IsAny<ContractQuery>())).Returns(sampleContracts);
+
+        var controller = new ContractsController(mockContractService.Object, mockClientService.Object, mockAdvisorService.Object);
+        var query = new ContractQuery();
+
+        // Act
+        var result = controller.ExportCsv(query);
+
+        // Assert
+        var fileResult = Assert.IsType<FileContentResult>(result);
+        Assert.Equal("text/csv", fileResult.ContentType);
+        Assert.Equal("smlouvy.csv", fileResult.FileDownloadName);
+
+        var fileString = System.Text.Encoding.UTF8.GetString(fileResult.FileContents);
+
+        Assert.Contains("Evidenční číslo;Instituce;Klient;Správce;Datum podpisu;Platnost od;Platnost do", fileString);
+        Assert.Contains($"2024/099;Komerční banka;Jan Běžný;Petr Obojí;{new DateTime(2024, 1, 15):d};{new DateTime(2024, 2, 1):d};{new DateTime(2025, 12, 31):d}", fileString);
+        Assert.Contains($"2026/001;ČSOB;Jan Běžný;Petr Obojí;{new DateTime(2026, 6, 7):d};{new DateTime(2026, 7, 7):d};", fileString);
+    }
 }
