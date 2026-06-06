@@ -295,7 +295,28 @@ public class AdvisorsControllerTests
         var fileString = System.Text.Encoding.UTF8.GetString(fileResult.FileContents);
 
         Assert.Contains("Jméno;Příjmení;Rodné číslo;Věk;E-mail;Telefon", fileString);
-        Assert.Contains("Petr;Obojí;850202/5678;41;petr@test.cz;+420 987 654 321", fileString);
+        Assert.Contains("Petr;Obojí;850202/5678;41;petr@test.cz;'+420 987 654 321", fileString);
         Assert.Contains("Pavel;Prázdný;900101/0000;36;;", fileString);
+    }
+
+    [Fact]
+    public void ExportCsv_ShouldEscapeDangerousCharacters_WhenDataContainsInjections()
+    {
+        // Arrange
+        var mockService = new Mock<IAdvisorService>();
+        var sampleAdvisors = new List<Advisor>
+        {
+            new() { Id = 1, FirstName = "Petr", LastName = "+420606", BirthNumber = "123", Age = 40 }
+        };
+        mockService.Setup(s => s.GetAllAdvisors(It.IsAny<PersonQuery>())).Returns(sampleAdvisors);
+        var controller = CreateController(mockService);
+
+        // Act
+        var result = controller.ExportCsv(new PersonQuery());
+        var fileResult = Assert.IsType<FileContentResult>(result);
+        var fileString = System.Text.Encoding.UTF8.GetString(fileResult.FileContents);
+
+        // Assert
+        Assert.Contains("'+420606", fileString);
     }
 }

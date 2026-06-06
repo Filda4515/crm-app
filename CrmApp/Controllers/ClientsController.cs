@@ -140,11 +140,11 @@ public class ClientsController(IClientService clientService) : Controller
         var clients = clientService.GetAllClients(query);
 
         var sb = new System.Text.StringBuilder();
-        sb.AppendLine("Jméno;Příjmení;Rodné číslo;Věk;E-mail;Telefon");
+        sb.Append("Jméno;Příjmení;Rodné číslo;Věk;E-mail;Telefon\r\n");
 
         foreach (var c in clients)
         {
-            sb.AppendLine($"{c.FirstName};{c.LastName};{c.BirthNumber};{c.Age};{c.Email ?? ""};{c.Phone ?? ""}");
+            sb.Append($"{c.FirstName.EscapeCsv()};{c.LastName.EscapeCsv()};{c.BirthNumber.EscapeCsv()};{c.Age};{c.Email.EscapeCsv()};{c.Phone.EscapeCsv()}\r\n");
         }
 
         var bom = System.Text.Encoding.UTF8.GetPreamble();

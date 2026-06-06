@@ -140,11 +140,11 @@ public class AdvisorsController(IAdvisorService advisorService) : Controller
         var advisors = advisorService.GetAllAdvisors(query);
 
         var sb = new System.Text.StringBuilder();
-        sb.AppendLine("Jméno;Příjmení;Rodné číslo;Věk;E-mail;Telefon");
+        sb.Append("Jméno;Příjmení;Rodné číslo;Věk;E-mail;Telefon\r\n");
 
         foreach (var a in advisors)
         {
-            sb.AppendLine($"{a.FirstName};{a.LastName};{a.BirthNumber};{a.Age};{a.Email ?? ""};{a.Phone ?? ""}");
+            sb.Append($"{a.FirstName.EscapeCsv()};{a.LastName.EscapeCsv()};{a.BirthNumber};{a.Age};{a.Email.EscapeCsv()};{a.Phone.EscapeCsv()}\r\n");
         }
 
         var bom = System.Text.Encoding.UTF8.GetPreamble();

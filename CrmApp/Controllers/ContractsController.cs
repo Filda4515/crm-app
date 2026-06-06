@@ -1,4 +1,5 @@
-﻿using CrmApp.Models;
+﻿using CrmApp.Extensions;
+using CrmApp.Models;
 using CrmApp.Models.Queries;
 using CrmApp.Models.ViewModels;
 using CrmApp.Services;
@@ -161,15 +162,15 @@ public class ContractsController(IContractService contractService, IClientServic
         var contracts = contractService.GetAllContracts(query);
 
         var sb = new System.Text.StringBuilder();
-        sb.AppendLine("Evidenční číslo;Instituce;Klient;Správce;Datum podpisu;Platnost od;Platnost do");
+        sb.Append("Evidenční číslo;Instituce;Klient;Správce;Datum podpisu;Platnost od;Platnost do\r\n");
 
         foreach (var c in contracts)
         {
-            var clientName = c.Client != null ? $"{c.Client.FirstName} {c.Client.LastName}" : "";
-            var managerName = c.Manager != null ? $"{c.Manager.FirstName} {c.Manager.LastName}" : "";
+            var clientName = c.Client != null ? $"{c.Client.FirstName} {c.Client.LastName}".EscapeCsv() : "";
+            var managerName = c.Manager != null ? $"{c.Manager.FirstName} {c.Manager.LastName}".EscapeCsv() : "";
             var endDate = c.EndDate?.ToShortDateString() ?? "";
 
-            sb.AppendLine($"{c.RegistrationNumber};{c.Institution};{clientName};{managerName};{c.SignedDate.ToShortDateString()};{c.EffectiveDate.ToShortDateString()};{endDate}");
+            sb.Append($"{c.RegistrationNumber.EscapeCsv()};{c.Institution.EscapeCsv()};{clientName};{managerName};{c.SignedDate.ToShortDateString()};{c.EffectiveDate.ToShortDateString()};{endDate}\r\n");
         }
 
         var bom = System.Text.Encoding.UTF8.GetPreamble();

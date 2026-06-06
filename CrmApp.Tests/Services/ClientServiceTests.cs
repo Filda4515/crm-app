@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CrmApp.Tests.Services;
 
-public class ClientServicesTests
+public class ClientServiceTests
 {
     private static CrmDbContext GetInMemoryDbContext()
     {
