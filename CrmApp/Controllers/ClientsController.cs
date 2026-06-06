@@ -4,11 +4,13 @@ using CrmApp.Models.Queries;
 using CrmApp.Models.ViewModels;
 using CrmApp.Services;
 
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace CrmApp.Controllers;
 
+[Authorize]
 public class ClientsController(IClientService clientService) : Controller
 {
     // GET: ClientsController

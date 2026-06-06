@@ -4,10 +4,12 @@ using CrmApp.Models.Queries;
 using CrmApp.Models.ViewModels;
 using CrmApp.Services;
 
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CrmApp.Controllers;
 
+[Authorize]
 public class ContractsController(IContractService contractService, IClientService clientService, IAdvisorService advisorService) : Controller
 {
     // GET: ContractsController
