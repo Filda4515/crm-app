@@ -69,7 +69,11 @@ public class ClientService(CrmDbContext context) : IClientService
 
     public void UpdateClient(Client client)
     {
-        context.Clients.Update(client);
-        context.SaveChanges();
+        var existingClient = context.Clients.Find(client.Id);
+        if (existingClient != null)
+        {
+            context.Entry(existingClient).CurrentValues.SetValues(client);
+            context.SaveChanges();
+        }
     }
 }

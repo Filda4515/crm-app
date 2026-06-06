@@ -70,7 +70,11 @@ public class AdvisorService(CrmDbContext context) : IAdvisorService
 
     public void UpdateAdvisor(Advisor advisor)
     {
-        context.Advisors.Update(advisor);
-        context.SaveChanges();
+        var existingAdvisor = context.Advisors.Find(advisor.Id);
+        if (existingAdvisor != null)
+        {
+            context.Entry(existingAdvisor).CurrentValues.SetValues(advisor);
+            context.SaveChanges();
+        }
     }
 }
