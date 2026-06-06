@@ -122,8 +122,8 @@ public class ContractServiceTests
     }
 
     [Theory]
-    [InlineData("signedDateAsc", 2024)]
-    [InlineData("invalid_fallback", 2026)]
+    [InlineData("signedDate", 2024)]
+    [InlineData("signedDateDesc", 2026)]
     public void GetAllContracts_ShouldOrderBySignedDate_WhenSortByIsSignedDate(string sortOrder, int expectedFirstYear)
     {
         // Arrange
@@ -195,6 +195,25 @@ public class ContractServiceTests
 
         // Assert
         Assert.Equal(expectedFirstYear, result[0].EffectiveDate.Year);
+    }
+
+    [Theory]
+    [InlineData("endDate", "2026/001")]
+    [InlineData("endDateDesc", "2026/002")]
+    public void GetAllContracts_ShouldOrderByEndDate_WhenSortByIsEndDate(string sortOrder, string expectedFirstRegNum)
+    {
+        // Arrange
+        using var context = GetInMemoryDbContext();
+        context.Contracts.AddRange(GetSampleContracts());
+        context.SaveChanges();
+        var service = CreateService(context);
+        var query = new ContractQuery { SortBy = sortOrder };
+
+        // Act
+        var result = service.GetAllContracts(query).ToList();
+
+        // Assert
+        Assert.Equal(expectedFirstRegNum, result[0].RegistrationNumber);
     }
 
     [Theory]

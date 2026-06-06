@@ -66,10 +66,30 @@
                 <a asp-action="Index"
                    asp-route-search="@Model.Query.Search"
                    asp-route-hideInactive="@Model.Query.HideInactive"
+                   asp-route-sortBy="@(Model.Query.SortBy == "signedDate" ? "signedDateDesc" : "signedDate")"
+                   class="text-decoration-none text-dark sort-link">
+                    Datum uzavření
+                    @(Model.Query.SortBy == "signedDate" ? "▲" : Model.Query.SortBy == "signedDateDesc" ? "▼" : "")
+                </a>
+            </th>
+            <th>
+                <a asp-action="Index"
+                   asp-route-search="@Model.Query.Search"
+                   asp-route-hideInactive="@Model.Query.HideInactive"
                    asp-route-sortBy="@(Model.Query.SortBy == "effectiveDate" ? "effectiveDateDesc" : "effectiveDate")"
                    class="text-decoration-none text-dark sort-link">
                     Platnost od
                     @(Model.Query.SortBy == "effectiveDate" ? "▲" : Model.Query.SortBy == "effectiveDateDesc" ? "▼" : "")
+                </a>
+            </th>
+            <th>
+                <a asp-action="Index"
+                   asp-route-search="@Model.Query.Search"
+                   asp-route-hideInactive="@Model.Query.HideInactive"
+                   asp-route-sortBy="@(Model.Query.SortBy == "endDate" ? "endDateDesc" : "endDate")"
+                   class="text-decoration-none text-dark sort-link">
+                    Datum ukončení
+                    @(Model.Query.SortBy == "endDate" ? "▲" : Model.Query.SortBy == "endDateDesc" ? "▼" : "")
                 </a>
             </th>
             <th></th>
@@ -81,7 +101,7 @@
             var hasFilters = !string.IsNullOrWhiteSpace(Model.Query.Search) || Model.Query.HideInactive;
 
             <tr>
-                <td colspan="6" class="text-center text-muted py-4">
+                <td colspan="8" class="text-center text-muted py-4">
                     @if (hasFilters)
                     {
                         <span>Zadaným filtrům neodpovídají žádné smlouvy.</span>
@@ -102,7 +122,9 @@
                     <td>@contract.Institution</td>
                     <td>@(contract.Client?.FirstName) @(contract.Client?.LastName)</td>
                     <td>@(contract.Manager?.FirstName) @(contract.Manager?.LastName)</td>
+                    <td>@contract.SignedDate.ToShortDateString()</td>
                     <td>@contract.EffectiveDate.ToShortDateString()</td>
+                    <td>@(contract.EndDate.HasValue ? contract.EndDate.Value.ToShortDateString() : "—")</td>
                     <td>
                         <a asp-action="Details" asp-route-id="@contract.Id">Detail</a>
                         <a asp-action="Edit" asp-route-id="@contract.Id">Upravit</a>

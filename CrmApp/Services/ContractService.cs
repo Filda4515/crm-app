@@ -60,18 +60,20 @@ public class ContractService(CrmDbContext context) : IContractService
 
         q = query?.SortBy switch
         {
-            "signedDateAsc" => q.OrderBy(c => c.SignedDate),
+            "signedDateDesc" => q.OrderByDescending(c => c.SignedDate),
             "registrationNumber" => q.OrderBy(c => c.RegistrationNumber),
             "registrationNumberDesc" => q.OrderByDescending(c => c.RegistrationNumber),
             "institution" => q.OrderBy(c => c.Institution).ThenBy(c => c.RegistrationNumber),
             "institutionDesc" => q.OrderByDescending(c => c.Institution).ThenBy(c => c.RegistrationNumber),
             "effectiveDate" => q.OrderBy(c => c.EffectiveDate),
             "effectiveDateDesc" => q.OrderByDescending(c => c.EffectiveDate),
+            "endDate" => q.OrderBy(c => c.EndDate),
+            "endDateDesc" => q.OrderByDescending(c => c.EndDate),
             "client" => q.OrderBy(c => c.Client!.LastName).ThenBy(c => c.Client!.FirstName),
             "clientDesc" => q.OrderByDescending(c => c.Client!.LastName).ThenBy(c => c.Client!.FirstName),
             "manager" => q.OrderBy(c => c.Manager!.LastName).ThenBy(c => c.Manager!.FirstName),
             "managerDesc" => q.OrderByDescending(c => c.Manager!.LastName).ThenBy(c => c.Manager!.FirstName),
-            _ => q.OrderByDescending(c => c.SignedDate)
+            _ => q.OrderBy(c => c.SignedDate)
         };
 
         return [.. q];
