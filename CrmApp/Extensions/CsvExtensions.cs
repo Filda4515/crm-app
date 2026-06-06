@@ -1,6 +1,6 @@
 ﻿namespace CrmApp.Extensions;
 
-public static class CsvExtentions
+public static class CsvExtensions
 {
     public static string EscapeCsv(this string? value)
     {
