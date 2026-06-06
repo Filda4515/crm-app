@@ -8,7 +8,7 @@ namespace CrmApp.Controllers;
 
 public class ErrorsController : Controller
 {
-    [Route("Errors")]
+    [Route("Error")]
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Index()
     {
