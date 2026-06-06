@@ -10,8 +10,8 @@ Webová aplikace. Uživatelské rozhraní se skládá z hlavní horní navigačn
 
 ### Přihlášení a bezpečnost
 Aplikace je zvenčí kompletně uzamčena a chráněna proti neoprávněnému přístupu. Pro přístup k jakýmkoliv datům nebo navigačním prvkům je nutné se přihlásit na úvodní obrazovce. 
-* Výchozí přihlašovací údaje pro administrátora jsou nastaveny na jméno: `admin` a heslo: `admin`. 
-* Tyto údaje si může správce systému kdykoliv změnit v konfiguračním souboru na serveru, aniž by musel zasahovat do zdrojového kódu.
+* Pro lokální spuštění a otestování aplikace (vývojové prostředí) jsou výchozí přihlašovací údaje nastaveny na jméno: `admin` a heslo: `admin`. 
+* V produkčním nasazení je nutné tyto údaje nastavit vlastní v konfiguračním souboru serveru.
 
 ### Hlavní navigace
 V horní tmavé liště (Navbar) se nachází odkazy na tři hlavní moduly aplikace:
@@ -63,7 +63,7 @@ Aplikace obsluhuje CRUD operace pro každou z hlavních entit (`Clients`, `Advis
 * **Služby (Services):** Obsahují hlavní byznys logiku aplikace (`IClientService`, `IAdvisorService`, `IContractService`). Zajišťují veškeré CRUD operace, aplikují filtry, řeší bezpečné řazení dat a oddělují kontrolery od přímého přístupu k databázi.
 * **Kontrolery (Controllers):** Zajišťují HTTP směrování. Zpracovávají vstupy z pohledů, kontrolují validitu dat (`ModelState.IsValid`) a delegují práci na služby. `ErrorsController` slouží pro globální odchytávání chyb v produkčním prostředí.
 * **Databáze (Data):** Využívá **Entity Framework Core** napojený na **MS SQL Server Express**. Kód využívá EF Migrace a seeding dat pro konzistenci. Pro zajištění komfortního vyhledávání je na úrovni databáze globálně vynucena kolace `Latin1_General_CI_AI`, která zajišťuje ignorování diakritiky a velikosti písmen při databázových dotazech.
-* **Bezpečnost a Autentizace:** Aplikace využívá nativní Cookie Authentication middleware. Celý systém je uzamčen pomocí atributů `[Authorize]`. Autentizace používá pevné přihlašovací údaje, které jsou uloženy v konfiguračním souboru `appsettings.json` (sekce `AdminCredentials`), odkud jsou načítány přes rozhraní `IConfiguration`. Aplikace je plně chráněna proti CSRF útokům pomocí `[ValidateAntiForgeryToken]` u všech HTTP POST požadavků.
+* **Bezpečnost a Autentizace:** Aplikace využívá nativní Cookie Authentication middleware. Celý systém je uzamčen pomocí atributů `[Authorize]`. Autentizace používá pevné přihlašovací údaje, které jsou řízeny kaskádováním konfigurace pro různá prostředí. Hlavní soubor `appsettings.json` slouží jako produkční šablona (s prázdnými údaji), zatímco pro lokální běh se údaje (`admin`/`admin`) načítají ze souboru `appsettings.Development.json` (sekce `AdminCredentials`) přes rozhraní `IConfiguration`. Aplikace je plně chráněna proti CSRF útokům pomocí `[ValidateAntiForgeryToken]` u všech HTTP POST požadavků.
 
 ### Testování
 Testy jsou postaveny na frameworku **xUnit** ve spojení s knihovnou **Moq** a slouží k vývoji pomocí metody TDD (Test-Driven Development).
