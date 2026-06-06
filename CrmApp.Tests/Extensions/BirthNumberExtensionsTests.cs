@@ -11,6 +11,8 @@ public class BirthNumberExtensionsTests
     [InlineData("200101/123", 1920, 1, 1)]
     [InlineData("460515/1234", 1946, 5, 15)]
     [InlineData("000101/0000", 2000, 1, 1)]
+    [InlineData("052228/1234", 2005, 2, 28)]
+    [InlineData("057228/1234", 2005, 2, 28)]
     public void GetDateOfBirth_ShouldParseCorrectly_WhenFormatIsValid(string rc, int expectedYear, int expectedMonth, int expectedDay)
     {
         // Act

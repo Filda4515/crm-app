@@ -36,6 +36,7 @@ public class ContractService(CrmDbContext context) : IContractService
     public IEnumerable<Contract> GetAllContracts(ContractQuery? query = null)
     {
         var q = context.Contracts
+            .AsNoTracking()
             .Include(c => c.Client)
             .Include(c => c.Manager)
             .Include(c => c.Participants)

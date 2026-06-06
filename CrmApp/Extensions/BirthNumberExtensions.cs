@@ -22,7 +22,9 @@ public static class BirthNumberExtensions
             fullYear -= 100;
         }
 
-        if (mm > 50) mm -= 50;
+        if (mm > 70) mm -= 70;
+        else if (mm > 50) mm -= 50;
+        else if (mm > 20) mm -= 20;
 
         return DateTime.TryParseExact($"{fullYear:D4}{mm:D2}{dd:D2}", "yyyyMMdd", null, System.Globalization.DateTimeStyles.None, out DateTime dob)
             ? dob

@@ -40,6 +40,10 @@ public class ContractFormViewModel : IValidatableObject
         {
             yield return new ValidationResult("Datum platnosti nesmí předcházet datu uzavření.", [nameof(EffectiveDate)]);
         }
+        if (EndDate.HasValue && EndDate.Value.Date < EffectiveDate.Date)
+        {
+            yield return new ValidationResult("Datum ukončení nesmí předcházet datu platnosti.", [nameof(EndDate)]);
+        }
         if (ParticipantIds == null || ParticipantIds.Count == 0)
         {
             yield return new ValidationResult("Smlouva musí mít minimálně jednoho účastníka.", [nameof(ParticipantIds)]);

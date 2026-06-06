@@ -48,6 +48,30 @@ public class ContractFormViewModelTests
     }
 
     [Fact]
+    public void EndDate_Validation_ShouldFail_WhenEndDateIsBeforeEffectiveDate()
+    {
+        // Arrange
+        var viewModel = new ContractFormViewModel
+        {
+            RegistrationNumber = "12345",
+            Institution = "ČSOB",
+            ClientId = 1,
+            ManagerId = 1,
+            ParticipantIds = [1],
+            SignedDate = new DateTime(2026, 6, 1),
+            EffectiveDate = new DateTime(2026, 6, 10),
+            EndDate = new DateTime(2026, 6, 5)
+        };
+
+        // Act
+        var results = Validate(viewModel);
+
+        // Assert
+        Assert.NotEmpty(results);
+        Assert.Contains(results, r => r.MemberNames.Contains(nameof(ContractFormViewModel.EndDate)));
+    }
+
+    [Fact]
     public void Participants_Validation_ShouldFail_WhenListIsEmpty()
     {
         // Arrange

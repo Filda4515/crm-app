@@ -1,14 +1,16 @@
 ﻿using System.Security.Claims;
 
+using CrmApp.Models;
 using CrmApp.Models.ViewModels;
 
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 
 namespace CrmApp.Controllers;
 
-public class AccountController(IConfiguration configuration) : Controller
+public class AccountController(IOptions<AdminSettings> adminSettingsOptions) : Controller
 {
     // GET: AccountController/Login
     [HttpGet]
@@ -27,8 +29,8 @@ public class AccountController(IConfiguration configuration) : Controller
             return View(model);
         }
 
-        var validUser = configuration["AdminCredentials:Username"];
-        var validPass = configuration["AdminCredentials:Password"];
+        var validUser = adminSettingsOptions.Value.Username;
+        var validPass = adminSettingsOptions.Value.Password;
 
         if (model.Username == validUser && model.Password == validPass)
         {

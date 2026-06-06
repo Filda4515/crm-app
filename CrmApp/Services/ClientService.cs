@@ -42,6 +42,7 @@ public class ClientService(CrmDbContext context) : IClientService
     public IEnumerable<Client> GetAllClients(PersonQuery? query = null)
     {
         var q = context.Clients
+            .AsNoTracking()
             .Include(c => c.Contracts)
             .AsQueryable();
 

@@ -43,6 +43,7 @@ public class AdvisorService(CrmDbContext context) : IAdvisorService
     public IEnumerable<Advisor> GetAllAdvisors(PersonQuery? query = null)
     {
         var q = context.Advisors
+            .AsNoTracking()
             .Include(a => a.ManagedContracts)
             .AsQueryable();
 

@@ -1,13 +1,14 @@
 ﻿using System.Security.Claims;
 
 using CrmApp.Controllers;
+using CrmApp.Models;
 using CrmApp.Models.ViewModels;
 
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 
 using Moq;
 
@@ -17,9 +18,14 @@ public class AccountControllerTests
 {
     private static AccountController CreateController(bool isAuthenticated = false)
     {
-        var configMock = new Mock<IConfiguration>();
-        configMock.Setup(c => c["AdminCredentials:Username"]).Returns("username");
-        configMock.Setup(c => c["AdminCredentials:Password"]).Returns("password");
+        var adminSettings = new AdminSettings
+        {
+            Username = "username",
+            Password = "password"
+        };
+
+        var optionsMock = new Mock<IOptions<AdminSettings>>();
+        optionsMock.Setup(o => o.Value).Returns(adminSettings);
 
         var authServiceMock = new Mock<IAuthenticationService>();
         var serviceProviderMock = new Mock<IServiceProvider>();
@@ -42,7 +48,7 @@ public class AccountControllerTests
         var urlHelperMock = new Mock<IUrlHelper>();
         var tempDataMock = new Mock<ITempDataDictionary>();
 
-        return new AccountController(configMock.Object)
+        return new AccountController(optionsMock.Object)
         {
             ControllerContext = new ControllerContext { HttpContext = httpContextMock.Object },
             Url = urlHelperMock.Object,

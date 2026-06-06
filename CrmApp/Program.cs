@@ -1,10 +1,13 @@
 using CrmApp.Data;
+using CrmApp.Models;
 using CrmApp.Services;
 
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.Configure<AdminSettings>(builder.Configuration.GetSection("AdminCredentials"));
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
@@ -21,6 +24,9 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     {
         options.LoginPath = "/Account/Login";
         options.ExpireTimeSpan = TimeSpan.FromHours(2);
+        options.Cookie.HttpOnly = true;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+        options.Cookie.SameSite = SameSiteMode.Strict;
     });
 
 var app = builder.Build();
