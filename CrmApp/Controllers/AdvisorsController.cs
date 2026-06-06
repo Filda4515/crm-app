@@ -59,8 +59,7 @@ public class AdvisorsController(IAdvisorService advisorService) : Controller
             LastName = vm.LastName,
             Email = vm.Email,
             Phone = vm.Phone,
-            BirthNumber = vm.BirthNumber,
-            Age = vm.BirthNumber.GetAge() ?? 0
+            BirthNumber = vm.BirthNumber
         };
 
         advisorService.CreateAdvisor(newAdvisor);
@@ -111,8 +110,7 @@ public class AdvisorsController(IAdvisorService advisorService) : Controller
             LastName = vm.LastName,
             Email = vm.Email,
             Phone = vm.Phone,
-            BirthNumber = vm.BirthNumber,
-            Age = vm.BirthNumber.GetAge() ?? 0
+            BirthNumber = vm.BirthNumber
         };
 
         advisorService.UpdateAdvisor(updatedAdvisor);

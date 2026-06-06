@@ -59,8 +59,7 @@ public class ClientsController(IClientService clientService) : Controller
             LastName = vm.LastName,
             Email = vm.Email,
             Phone = vm.Phone,
-            BirthNumber = vm.BirthNumber,
-            Age = vm.BirthNumber.GetAge() ?? 0
+            BirthNumber = vm.BirthNumber
         };
 
         clientService.CreateClient(newClient);
@@ -111,8 +110,7 @@ public class ClientsController(IClientService clientService) : Controller
             LastName = vm.LastName,
             Email = vm.Email,
             Phone = vm.Phone,
-            BirthNumber = vm.BirthNumber,
-            Age = vm.BirthNumber.GetAge() ?? 0
+            BirthNumber = vm.BirthNumber
         };
 
         clientService.UpdateClient(updatedClient);

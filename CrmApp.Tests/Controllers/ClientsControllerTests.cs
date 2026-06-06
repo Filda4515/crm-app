@@ -27,8 +27,7 @@ public class ClientsControllerTests
             Id = 1,
             FirstName = "Jan",
             LastName = "Novák",
-            BirthNumber = "960101/1234",
-            Age = 30
+            BirthNumber = "960101/1234"
         };
     }
 
@@ -280,8 +279,8 @@ public class ClientsControllerTests
         var mockService = new Mock<IClientService>();
         var sampleClients = new List<Client>
         {
-            new() { Id = 1, FirstName = "Jan", LastName = "Běžný", BirthNumber = "960101/1234", Age = 30, Email = "jan@test.cz", Phone = "+420 123 456" },
-            new() { Id = 2, FirstName = "Alena", LastName = "Prázdná", BirthNumber = "955555/5555", Age = 28, Email = null, Phone = null }
+            new() { Id = 1, FirstName = "Jan", LastName = "Běžný", BirthNumber = "960101/1234", Email = "jan@test.cz", Phone = "+420 123 456" },
+            new() { Id = 2, FirstName = "Alena", LastName = "Prázdná", BirthNumber = "955515/5555", Email = null, Phone = null }
         };
 
         mockService.Setup(s => s.GetAllClients(It.IsAny<PersonQuery>())).Returns(sampleClients);
@@ -300,8 +299,8 @@ public class ClientsControllerTests
         var fileString = System.Text.Encoding.UTF8.GetString(fileResult.FileContents);
 
         Assert.Contains("Jméno;Příjmení;Rodné číslo;Věk;E-mail;Telefon", fileString);
-        Assert.Contains("Jan;Běžný;960101/1234;30;jan@test.cz;'+420 123 456", fileString);
-        Assert.Contains("Alena;Prázdná;955555/5555;28;;", fileString);
+        Assert.Contains($"Jan;Běžný;960101/1234;{sampleClients[0].Age};jan@test.cz;'+420 123 456", fileString);
+        Assert.Contains($"Alena;Prázdná;955515/5555;{sampleClients[1].Age};;", fileString);
     }
 
     [Fact]
@@ -311,7 +310,7 @@ public class ClientsControllerTests
         var mockService = new Mock<IClientService>();
         var sampleClients = new List<Client>
         {
-            new() { Id = 1, FirstName = "Jan;Pavel", LastName = "=SUM(1+1)", BirthNumber = "123", Age = 30 }
+            new() { Id = 1, FirstName = "Jan;Pavel", LastName = "=SUM(1+1)", BirthNumber = "123" }
         };
         mockService.Setup(s => s.GetAllClients(It.IsAny<PersonQuery>())).Returns(sampleClients);
         var controller = CreateController(mockService);

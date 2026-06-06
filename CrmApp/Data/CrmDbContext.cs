@@ -36,8 +36,7 @@ public class CrmDbContext(DbContextOptions<CrmDbContext> options) : DbContext(op
                 LastName = "Běžný",
                 Email = "jan.bezny@gmail.com",
                 Phone = "+420 123 456 789",
-                BirthNumber = "960101/1234",
-                Age = 30
+                BirthNumber = "960101/1234"
             },
             new Client
             {
@@ -46,8 +45,7 @@ public class CrmDbContext(DbContextOptions<CrmDbContext> options) : DbContext(op
                 LastName = "Prázdná",
                 Email = "alena.prazdna@gmail.com",
                 Phone = "+420 000 000 000",
-                BirthNumber = "955555/5555",
-                Age = 28
+                BirthNumber = "955515/5555"
             },
             new Client
             {
@@ -56,8 +54,7 @@ public class CrmDbContext(DbContextOptions<CrmDbContext> options) : DbContext(op
                 LastName = "Bývalý",
                 Email = "stepan.byvaly@gmail.com",
                 Phone = "+420 111 222 333",
-                BirthNumber = "800505/1111",
-                Age = 46
+                BirthNumber = "800505/1111"
             }
         );
 
@@ -69,8 +66,7 @@ public class CrmDbContext(DbContextOptions<CrmDbContext> options) : DbContext(op
                 LastName = "Obojí",
                 Email = "petr.oboji@gmail.com",
                 Phone = "+420 987 654 321",
-                BirthNumber = "850202/5678",
-                Age = 41
+                BirthNumber = "850202/5678"
             },
             new Advisor
             {
@@ -79,8 +75,7 @@ public class CrmDbContext(DbContextOptions<CrmDbContext> options) : DbContext(op
                 LastName = "Účastník",
                 Email = "karel.ucastnik@gmail.com",
                 Phone = "+420 111 222 333",
-                BirthNumber = "920303/9999",
-                Age = 34
+                BirthNumber = "920303/9999"
             },
             new Advisor
             {
@@ -89,8 +84,7 @@ public class CrmDbContext(DbContextOptions<CrmDbContext> options) : DbContext(op
                 LastName = "Prázdný",
                 Email = "pavel.prazdny@gmail.com",
                 Phone = "+420 555 666 777",
-                BirthNumber = "900101/0000",
-                Age = 36
+                BirthNumber = "900101/0000"
             },
             new Advisor
             {
@@ -99,8 +93,7 @@ public class CrmDbContext(DbContextOptions<CrmDbContext> options) : DbContext(op
                 LastName = "Bývalá-Správcová",
                 Email = "zaneta.spravcova@gmail.com",
                 Phone = "+420 333 444 555",
-                BirthNumber = "980808/8888",
-                Age = 28
+                BirthNumber = "980808/8888"
             }
         );
 

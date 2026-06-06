@@ -24,9 +24,9 @@ public class ClientServiceTests
 
     private static List<Client> GetSampleClients() =>
     [
-        new() { Id = 1, FirstName = "Jan", LastName = "Běžný", BirthNumber = "960101/1234", Age = 30 },
-        new() { Id = 2, FirstName = "Alena", LastName = "Prázdná", BirthNumber = "955555/5555", Age = 28 },
-        new() { Id = 3, FirstName = "Štěpán", LastName = "Bývalý", BirthNumber = "800505/1111", Age = 46 }
+        new() { Id = 1, FirstName = "Jan", LastName = "Běžný", BirthNumber = "960101/1234" },
+        new() { Id = 2, FirstName = "Alena", LastName = "Prázdná", BirthNumber = "955515/5555" },
+        new() { Id = 3, FirstName = "Štěpán", LastName = "Bývalý", BirthNumber = "800505/1111" }
     ];
 
     [Fact]

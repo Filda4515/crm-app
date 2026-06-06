@@ -16,8 +16,11 @@ public static class BirthNumberExtensions
         }
 
         string suffix = birthNumber[(slashIndex + 1)..];
-        int century = suffix.Length == 3 ? 1900 : yy >= 54 ? 1900 : 2000;
-        int fullYear = century + yy;
+        int fullYear = suffix.Length == 3 ? 1900 + yy : 2000 + yy;
+        if (fullYear > DateTime.Today.Year)
+        {
+            fullYear -= 100;
+        }
 
         if (mm > 50) mm -= 50;
 

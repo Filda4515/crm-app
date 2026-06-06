@@ -292,8 +292,8 @@ public class ContractsControllerTests
         var mockClientService = new Mock<IClientService>();
         var mockAdvisorService = new Mock<IAdvisorService>();
 
-        var client = new Client { Id = 1, FirstName = "Jan", LastName = "Běžný", BirthNumber = "960101/1234", Age = 30 };
-        var manager = new Advisor { Id = 1, FirstName = "Petr", LastName = "Obojí", BirthNumber = "850202/5678", Age = 41 };
+        var client = new Client { Id = 1, FirstName = "Jan", LastName = "Běžný", BirthNumber = "960101/1234" };
+        var manager = new Advisor { Id = 1, FirstName = "Petr", LastName = "Obojí", BirthNumber = "850202/5678" };
 
         var sampleContracts = new List<Contract>
         {
@@ -351,8 +351,8 @@ public class ContractsControllerTests
             new() {
                 RegistrationNumber = "2026/001",
                 Institution = "Banka;Test",
-                Client = new Client { Id = 1, FirstName = "@Pavel", LastName = "Novák", BirthNumber = "960101/1234", Age = 30 },
-                Manager = new Advisor { Id = 1, FirstName = "Petr", LastName = "Obojí", BirthNumber = "850202/5678", Age = 41 },
+                Client = new Client { Id = 1, FirstName = "@Pavel", LastName = "Novák", BirthNumber = "960101/1234" },
+                Manager = new Advisor { Id = 1, FirstName = "Petr", LastName = "Obojí", BirthNumber = "850202/5678" },
                 SignedDate = DateTime.Today, EffectiveDate = DateTime.Today
             }
         };

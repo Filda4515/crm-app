@@ -24,10 +24,10 @@ public class AdvisorServiceTests
 
     private static List<Advisor> GetSampleAdvisors() =>
     [
-        new() { Id = 1, FirstName = "Petr", LastName = "Obojí", BirthNumber = "850202/5678", Age = 41 },
-        new() { Id = 2, FirstName = "Karel", LastName = "Účastník", BirthNumber = "920303/9999", Age = 34 },
-        new() { Id = 3, FirstName = "Pavel", LastName = "Prázdný", BirthNumber = "900101/0000", Age = 36 },
-        new() { Id = 4, FirstName = "Žaneta", LastName = "Bývalá-Správcová", BirthNumber = "980808/8888", Age = 28 }
+        new() { Id = 1, FirstName = "Petr", LastName = "Obojí", BirthNumber = "850202/5678" },
+        new() { Id = 2, FirstName = "Karel", LastName = "Účastník", BirthNumber = "920303/9999" },
+        new() { Id = 3, FirstName = "Pavel", LastName = "Prázdný", BirthNumber = "900101/0000" },
+        new() { Id = 4, FirstName = "Žaneta", LastName = "Bývalá-Správcová", BirthNumber = "980808/8888" }
     ];
 
     [Fact]

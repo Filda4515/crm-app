@@ -27,8 +27,7 @@ public class AdvisorsControllerTests
             Id = 1,
             FirstName = "Petr",
             LastName = "Svoboda",
-            BirthNumber = "900101/1234",
-            Age = 36
+            BirthNumber = "900101/1234"
         };
     }
 
@@ -277,8 +276,8 @@ public class AdvisorsControllerTests
         var mockService = new Mock<IAdvisorService>();
         var sampleAdvisors = new List<Advisor>
         {
-            new() { Id = 1, FirstName = "Petr", LastName = "Obojí", BirthNumber = "850202/5678", Age = 41, Email = "petr@test.cz", Phone = "+420 987 654 321" },
-            new() { Id = 2, FirstName = "Pavel", LastName = "Prázdný", BirthNumber = "900101/0000", Age = 36, Email = null, Phone = null }
+            new() { Id = 1, FirstName = "Petr", LastName = "Obojí", BirthNumber = "850202/5678", Email = "petr@test.cz", Phone = "+420 987 654 321" },
+            new() { Id = 2, FirstName = "Pavel", LastName = "Prázdný", BirthNumber = "900101/0000", Email = null, Phone = null }
         };
 
         mockService.Setup(s => s.GetAllAdvisors(It.IsAny<PersonQuery>())).Returns(sampleAdvisors);
@@ -297,8 +296,8 @@ public class AdvisorsControllerTests
         var fileString = System.Text.Encoding.UTF8.GetString(fileResult.FileContents);
 
         Assert.Contains("Jméno;Příjmení;Rodné číslo;Věk;E-mail;Telefon", fileString);
-        Assert.Contains("Petr;Obojí;850202/5678;41;petr@test.cz;'+420 987 654 321", fileString);
-        Assert.Contains("Pavel;Prázdný;900101/0000;36;;", fileString);
+        Assert.Contains($"Petr;Obojí;850202/5678;{sampleAdvisors[0].Age};petr@test.cz;'+420 987 654 321", fileString);
+        Assert.Contains($"Pavel;Prázdný;900101/0000;{sampleAdvisors[1].Age};;", fileString);
     }
 
     [Fact]
@@ -308,7 +307,7 @@ public class AdvisorsControllerTests
         var mockService = new Mock<IAdvisorService>();
         var sampleAdvisors = new List<Advisor>
         {
-            new() { Id = 1, FirstName = "Petr", LastName = "+420606", BirthNumber = "123", Age = 40 }
+            new() { Id = 1, FirstName = "Petr", LastName = "+420606", BirthNumber = "123" }
         };
         mockService.Setup(s => s.GetAllAdvisors(It.IsAny<PersonQuery>())).Returns(sampleAdvisors);
         var controller = CreateController(mockService);

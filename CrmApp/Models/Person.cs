@@ -1,10 +1,11 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 using CrmApp.Extensions;
 
 namespace CrmApp.Models;
 
-public abstract class Person : IValidatableObject
+public abstract class Person
 {
     [Key]
     public int Id { get; set; }
@@ -34,25 +35,7 @@ public abstract class Person : IValidatableObject
     [Display(Name = "Rodné číslo")]
     public required string BirthNumber { get; set; }
 
-    [Required(ErrorMessage = "Věk je povinný.")]
-    [Range(18, 150, ErrorMessage = "Věk musí být minimálně 18 let.")]
     [Display(Name = "Věk")]
-    public int Age { get; set; }
-
-    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
-    {
-        var dob = BirthNumber?.GetDateOfBirth();
-
-        if (dob == null)
-        {
-            yield return new ValidationResult("Rodné číslo neobsahuje platné datum narození.", [nameof(BirthNumber)]);
-            yield break;
-        }
-
-        var calculatedAge = BirthNumber!.GetAge();
-        if (calculatedAge != Age)
-        {
-            yield return new ValidationResult($"Zadaný věk neodpovídá rodnému číslu. Očekávaný věk je {calculatedAge}.", [nameof(Age)]);
-        }
-    }
+    [NotMapped]
+    public int Age => BirthNumber?.GetAge() ?? 0;
 }

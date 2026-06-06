@@ -41,6 +41,12 @@ public abstract class PersonFormViewModel : IValidatableObject
         {
             yield return new ValidationResult("Rodné číslo neobsahuje platné datum narození.", [nameof(BirthNumber)]);
         }
+
+        var age = BirthNumber!.GetAge();
+        if (age < 18)
+        {
+            yield return new ValidationResult("Osoba musí být starší 18 let.", [nameof(BirthNumber)]);
+        }
     }
 }
 
