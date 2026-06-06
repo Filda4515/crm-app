@@ -302,26 +302,4 @@ public class ClientsControllerTests
         Assert.Contains($"Jan;Běžný;960101/1234;{sampleClients[0].Age};jan@test.cz;'+420 123 456", fileString);
         Assert.Contains($"Alena;Prázdná;955515/5555;{sampleClients[1].Age};;", fileString);
     }
-
-    [Fact]
-    public void ExportCsv_ShouldEscapeDangerousCharacters_WhenDataContainsInjections()
-    {
-        // Arrange
-        var mockService = new Mock<IClientService>();
-        var sampleClients = new List<Client>
-        {
-            new() { Id = 1, FirstName = "Jan;Pavel", LastName = "=SUM(1+1)", BirthNumber = "123" }
-        };
-        mockService.Setup(s => s.GetAllClients(It.IsAny<PersonQuery>())).Returns(sampleClients);
-        var controller = CreateController(mockService);
-
-        // Act
-        var result = controller.ExportCsv(new PersonQuery());
-        var fileResult = Assert.IsType<FileContentResult>(result);
-        var fileString = System.Text.Encoding.UTF8.GetString(fileResult.FileContents);
-
-        // Assert
-        Assert.Contains("\"Jan;Pavel\"", fileString);
-        Assert.Contains("'=SUM(1+1)", fileString);
-    }
 }

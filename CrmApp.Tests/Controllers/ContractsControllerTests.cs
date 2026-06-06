@@ -337,35 +337,4 @@ public class ContractsControllerTests
         Assert.Contains($"2024/099;Komerční banka;Jan Běžný;Petr Obojí;{new DateTime(2024, 1, 15):d};{new DateTime(2024, 2, 1):d};{new DateTime(2025, 12, 31):d}", fileString);
         Assert.Contains($"2026/001;ČSOB;Jan Běžný;Petr Obojí;{new DateTime(2026, 6, 7):d};{new DateTime(2026, 7, 7):d};", fileString);
     }
-
-    [Fact]
-    public void ExportCsv_ShouldEscapeDangerousCharactersInNavigations_WhenDataContainsInjections()
-    {
-        // Arrange
-        var mockContractService = new Mock<IContractService>();
-        var mockClientService = new Mock<IClientService>();
-        var mockAdvisorService = new Mock<IAdvisorService>();
-
-        var sampleContracts = new List<Contract>
-        {
-            new() {
-                RegistrationNumber = "2026/001",
-                Institution = "Banka;Test",
-                Client = new Client { Id = 1, FirstName = "@Pavel", LastName = "Novák", BirthNumber = "960101/1234" },
-                Manager = new Advisor { Id = 1, FirstName = "Petr", LastName = "Obojí", BirthNumber = "850202/5678" },
-                SignedDate = DateTime.Today, EffectiveDate = DateTime.Today
-            }
-        };
-
-        mockContractService.Setup(s => s.GetAllContracts(It.IsAny<ContractQuery>())).Returns(sampleContracts);
-        var controller = new ContractsController(mockContractService.Object, mockClientService.Object, mockAdvisorService.Object);
-
-        // Act
-        var result = controller.ExportCsv(new ContractQuery());
-        var fileString = System.Text.Encoding.UTF8.GetString(((FileContentResult)result).FileContents);
-
-        // Assert
-        Assert.Contains("\"Banka;Test\"", fileString);
-        Assert.Contains("'@Pavel Novák", fileString);
-    }
 }

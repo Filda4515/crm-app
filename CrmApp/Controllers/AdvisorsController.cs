@@ -147,10 +147,6 @@ public class AdvisorsController(IAdvisorService advisorService) : Controller
             sb.Append($"{a.FirstName.EscapeCsv()};{a.LastName.EscapeCsv()};{a.BirthNumber};{a.Age};{a.Email.EscapeCsv()};{a.Phone.EscapeCsv()}\r\n");
         }
 
-        var bom = System.Text.Encoding.UTF8.GetPreamble();
-        var bytes = System.Text.Encoding.UTF8.GetBytes(sb.ToString());
-        var fileBytes = bom.Concat(bytes).ToArray();
-
-        return File(fileBytes, "text/csv", "poradci.csv");
+        return File(sb.GetCsvBytes(), "text/csv", "poradci.csv");
     }
 }

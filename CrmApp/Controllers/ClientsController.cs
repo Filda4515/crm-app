@@ -147,10 +147,6 @@ public class ClientsController(IClientService clientService) : Controller
             sb.Append($"{c.FirstName.EscapeCsv()};{c.LastName.EscapeCsv()};{c.BirthNumber.EscapeCsv()};{c.Age};{c.Email.EscapeCsv()};{c.Phone.EscapeCsv()}\r\n");
         }
 
-        var bom = System.Text.Encoding.UTF8.GetPreamble();
-        var bytes = System.Text.Encoding.UTF8.GetBytes(sb.ToString());
-        var fileBytes = bom.Concat(bytes).ToArray();
-
-        return File(fileBytes, "text/csv", "klienti.csv");
+        return File(sb.GetCsvBytes(), "text/csv", "klienti.csv");
     }
 }

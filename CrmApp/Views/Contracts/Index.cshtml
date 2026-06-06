@@ -148,14 +148,16 @@
             <div class="modal-header">
                 <h5 class="modal-title">Potvrdit smazání</h5>
             </div>
-            <div class="modal-body">Opravdu chcete smazat tuto smlouvu?</div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Zrušit</button>
-                <form method="post" asp-action="Delete">
+            <form method="post" asp-action="Delete">
+                <div class="modal-body">
+                    <p>Opravdu chcete smazat tuto smlouvu?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Zrušit</button>
                     <input type="hidden" id="deleteId" name="id" />
                     <button type="submit" class="btn btn-danger">Smazat</button>
-                </form>
-            </div>
+                </div>
+            </form>
         </div>
     </div>
 </div>

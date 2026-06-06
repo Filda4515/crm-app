@@ -60,7 +60,7 @@ public class ContractService(CrmDbContext context) : IContractService
 
         q = query?.SortBy switch
         {
-            "signedDateDesc" => q.OrderByDescending(c => c.SignedDate),
+            "signedDate" => q.OrderBy(c => c.SignedDate),
             "registrationNumber" => q.OrderBy(c => c.RegistrationNumber),
             "registrationNumberDesc" => q.OrderByDescending(c => c.RegistrationNumber),
             "institution" => q.OrderBy(c => c.Institution).ThenBy(c => c.RegistrationNumber),
@@ -73,7 +73,7 @@ public class ContractService(CrmDbContext context) : IContractService
             "clientDesc" => q.OrderByDescending(c => c.Client!.LastName).ThenBy(c => c.Client!.FirstName),
             "manager" => q.OrderBy(c => c.Manager!.LastName).ThenBy(c => c.Manager!.FirstName),
             "managerDesc" => q.OrderByDescending(c => c.Manager!.LastName).ThenBy(c => c.Manager!.FirstName),
-            _ => q.OrderBy(c => c.SignedDate)
+            _ => q.OrderByDescending(c => c.SignedDate)
         };
 
         return [.. q];
@@ -89,7 +89,7 @@ public class ContractService(CrmDbContext context) : IContractService
         {
             context.Entry(existingContract).CurrentValues.SetValues(contract);
 
-            if (contract.Participants != null && contract.Participants.Count != 0)
+            if (contract.Participants != null)
             {
                 var participantIds = contract.Participants.Select(p => p.Id).ToList();
                 existingContract.Participants.Clear();

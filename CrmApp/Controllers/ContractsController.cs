@@ -175,10 +175,6 @@ public class ContractsController(IContractService contractService, IClientServic
             sb.Append($"{c.RegistrationNumber.EscapeCsv()};{c.Institution.EscapeCsv()};{clientName};{managerName};{c.SignedDate.ToShortDateString()};{c.EffectiveDate.ToShortDateString()};{endDate}\r\n");
         }
 
-        var bom = System.Text.Encoding.UTF8.GetPreamble();
-        var bytes = System.Text.Encoding.UTF8.GetBytes(sb.ToString());
-        var fileBytes = bom.Concat(bytes).ToArray();
-
-        return File(fileBytes, "text/csv", "smlouvy.csv");
+        return File(sb.GetCsvBytes(), "text/csv", "smlouvy.csv");
     }
 }
