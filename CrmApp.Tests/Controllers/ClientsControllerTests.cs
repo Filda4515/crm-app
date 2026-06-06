@@ -44,20 +44,22 @@ public class ClientsControllerTests
     }
 
     [Fact]
-    public void Index_ShouldReturnViewWithModel_WhenCalled()
+    public void Index_ShouldPassQueryToService_WhenCalled()
     {
         // Arrange
         var mockService = new Mock<IClientService>();
         mockService.Setup(s => s.GetAllClients()).Returns([GetValidClient()]);
         var controller = CreateController(mockService);
+        var query = new PersonQuery { Search = "Testovací dotaz" };
 
         // Act
-        var result = controller.Index(new PersonQuery());
+        var result = controller.Index(query);
 
         // Assert
         var viewResult = Assert.IsType<ViewResult>(result);
         var model = Assert.IsType<ClientIndexViewModel>(viewResult.Model);
         Assert.NotNull(model.Clients);
+        mockService.Verify(s => s.GetAllClients(query), Times.Once);
     }
 
     [Fact]

@@ -48,7 +48,7 @@ public class ContractsControllerTests
     }
 
     [Fact]
-    public void Index_ShouldReturnViewWithModel_WhenCalled()
+    public void Index_ShouldPassQueryToService_WhenCalled()
     {
         // Arrange
         var mockContract = new Mock<IContractService>();
@@ -57,14 +57,16 @@ public class ContractsControllerTests
 
         mockContract.Setup(s => s.GetAllContracts()).Returns([GetValidContract()]);
         var controller = CreateController(mockContract, mockClient, mockAdvisor);
+        var query = new ContractQuery { Search = "Testovací dotaz" };
 
         // Act
-        var result = controller.Index(new ContractQuery());
+        var result = controller.Index(query);
 
         // Assert
         var viewResult = Assert.IsType<ViewResult>(result);
         var model = Assert.IsType<ContractIndexViewModel>(viewResult.Model);
         Assert.NotNull(model.Contracts);
+        mockContract.Verify(s => s.GetAllContracts(query), Times.Once);
     }
 
     [Fact]
