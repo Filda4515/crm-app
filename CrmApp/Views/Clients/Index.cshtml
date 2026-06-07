@@ -1,4 +1,5 @@
-﻿@model CrmApp.Models.ViewModels.ClientIndexViewModel
+﻿@using CrmApp.Extensions
+@model CrmApp.Models.ViewModels.ClientIndexViewModel
 
 <h1>Klienti</h1>
 
@@ -66,6 +67,7 @@
         {
             @foreach (var client in Model.Clients)
             {
+                var count = client.Contracts?.Count ?? 0;
                 <tr>
                     <td>@client.FirstName</td>
                     <td>@client.LastName</td>
@@ -81,7 +83,8 @@
                                 data-bs-toggle="modal"
                                 data-bs-target="#deleteModal"
                                 data-id="@client.Id"
-                                data-contracts="@(client.Contracts?.Count ?? 0)">
+                                data-contracts="@count"
+                                data-word="@(count.PluralizeContracts())">
                             Smazat
                         </button>
                     </td>
@@ -102,7 +105,7 @@
                     <p>Opravdu chcete smazat tohoto klienta?</p>
 
                     <div id="contractsWarning" class="alert alert-warning d-none">
-                        <strong>Pozor!</strong> Tento klient má u nás <span id="contractsCount">0</span> smluv.
+                        <strong>Pozor!</strong> Tento klient má u nás <span id="contractsCount">0</span> <span id="contractsWord">smluv</span>.
                         Pokud ho smažete, musíte s ním smazat i tyto smlouvy.
 
                         <div class="form-check mt-3">
@@ -130,6 +133,7 @@
             const $button = $(e.relatedTarget);
             const clientId = $button.data('id');
             const contractsCount = parseInt($button.data('contracts')) || 0;
+            const contractsWord = $button.data('word');
 
             $('#deleteId').val(clientId);
 
@@ -142,6 +146,7 @@
             if (contractsCount > 0) {
                 $warningDiv.removeClass('d-none');
                 $('#contractsCount').text(contractsCount);
+                $('#contractsWord').text(contractsWord);
                 $submitBtn.prop('disabled', true);
 
                 $checkbox.off('change').on('change', function () {

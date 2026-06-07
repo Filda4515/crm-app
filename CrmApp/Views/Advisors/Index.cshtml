@@ -1,4 +1,5 @@
-﻿@model CrmApp.Models.ViewModels.AdvisorIndexViewModel
+﻿@using CrmApp.Extensions
+@model CrmApp.Models.ViewModels.AdvisorIndexViewModel
 
 <h1>Poradci</h1>
 
@@ -66,6 +67,7 @@
         {
             @foreach (var advisor in Model.Advisors)
             {
+                var count = advisor.ManagedContracts?.Count ?? 0;
                 <tr>
                     <td>@advisor.FirstName</td>
                     <td>@advisor.LastName</td>
@@ -81,7 +83,8 @@
                                 data-bs-toggle="modal"
                                 data-bs-target="#deleteModal"
                                 data-id="@advisor.Id"
-                                data-contracts="@(advisor.ManagedContracts?.Count ?? 0)">
+                                data-contracts="@count"
+                                data-word="@(count.PluralizeContracts())">
                             Smazat
                         </button>
                     </td>
@@ -102,7 +105,7 @@
                     <p>Opravdu chcete smazat tohoto poradce?</p>
 
                     <div id="contractsWarning" class="alert alert-warning d-none">
-                        <strong>Pozor!</strong> Tento poradce spravuje <span id="contractsCount">0</span> smluv.
+                        <strong>Pozor!</strong> Tento poradce spravuje <span id="contractsCount">0</span> <span id="contractsWord">smluv</span>.
                         Pokud ho smažete, musíte s ním smazat i tyto smlouvy.
 
                         <div class="form-check mt-3">
@@ -130,6 +133,7 @@
             const $button = $(e.relatedTarget);
             const advisorId = $button.data('id');
             const contractsCount = parseInt($button.data('contracts')) || 0;
+            const contractsWord = $button.data('word');
 
             $('#deleteId').val(advisorId);
 
@@ -142,6 +146,7 @@
             if (contractsCount > 0) {
                 $warningDiv.removeClass('d-none');
                 $('#contractsCount').text(contractsCount);
+                $('#contractsWord').text(contractsWord);
                 $submitBtn.prop('disabled', true);
 
                 $checkbox.off('change').on('change', function () {
