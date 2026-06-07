@@ -24,7 +24,7 @@ public abstract class PersonFormViewModel : IValidatableObject
     public string? Email { get; set; }
 
     [MaxLength(20, ErrorMessage = "Telefon je příliš dlouhý.")]
-    [Phone(ErrorMessage = "Neplatný formát telefonu.")]
+    [RegularExpression(@"^(\+?\d{1,3})?[ \d]{9,15}$", ErrorMessage = "Neplatný formát telefonu.")]
     [Display(Name = "Telefonní číslo")]
     public string? Phone { get; set; }
 
