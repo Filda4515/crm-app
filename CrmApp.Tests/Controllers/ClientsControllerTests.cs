@@ -43,16 +43,16 @@ public class ClientsControllerTests
     }
 
     [Fact]
-    public void Index_ShouldPassQueryToService_WhenCalled()
+    public async Task Index_ShouldPassQueryToService_WhenCalled()
     {
         // Arrange
         var mockService = new Mock<IClientService>();
-        mockService.Setup(s => s.GetAllClients()).Returns([GetValidClient()]);
+        mockService.Setup(s => s.GetAllClients(It.IsAny<PersonQuery>())).ReturnsAsync([GetValidClient()]);
         var controller = CreateController(mockService);
         var query = new PersonQuery { Search = "Testovací dotaz" };
 
         // Act
-        var result = controller.Index(query);
+        var result = await controller.Index(query);
 
         // Assert
         var viewResult = Assert.IsType<ViewResult>(result);
@@ -62,16 +62,16 @@ public class ClientsControllerTests
     }
 
     [Fact]
-    public void Details_ShouldReturnViewWithModel_WhenClientExists()
+    public async Task Details_ShouldReturnViewWithModel_WhenClientExists()
     {
         // Arrange
         var mockService = new Mock<IClientService>();
         var existingClient = GetValidClient();
-        mockService.Setup(s => s.GetClientById(1)).Returns(existingClient);
+        mockService.Setup(s => s.GetClientById(1)).ReturnsAsync(existingClient);
         var controller = CreateController(mockService);
 
         // Act
-        var result = controller.Details(1);
+        var result = await controller.Details(1);
 
         // Assert
         var viewResult = Assert.IsType<ViewResult>(result);
@@ -79,15 +79,15 @@ public class ClientsControllerTests
     }
 
     [Fact]
-    public void Details_ShouldReturnNotFound_WhenClientDoesNotExist()
+    public async Task Details_ShouldReturnNotFound_WhenClientDoesNotExist()
     {
         // Arrange
         var mockService = new Mock<IClientService>();
-        mockService.Setup(s => s.GetClientById(It.IsAny<int>())).Returns((Client?)null);
+        mockService.Setup(s => s.GetClientById(It.IsAny<int>())).ReturnsAsync((Client?)null);
         var controller = CreateController(mockService);
 
         // Act
-        var result = controller.Details(999);
+        var result = await controller.Details(999);
 
         // Assert
         Assert.IsType<NotFoundResult>(result);
@@ -108,7 +108,7 @@ public class ClientsControllerTests
     }
 
     [Fact]
-    public void Create_Post_ShouldRedirectToIndex_WhenModelStateIsValid()
+    public async Task Create_Post_ShouldRedirectToIndex_WhenModelStateIsValid()
     {
         // Arrange
         var mockService = new Mock<IClientService>();
@@ -116,7 +116,7 @@ public class ClientsControllerTests
         var newViewModel = GetValidViewModel();
 
         // Act
-        var result = controller.Create(newViewModel);
+        var result = await controller.Create(newViewModel);
 
         // Assert
         var redirectToActionResult = Assert.IsType<RedirectToActionResult>(result);
@@ -125,7 +125,7 @@ public class ClientsControllerTests
     }
 
     [Fact]
-    public void Create_Post_ShouldReturnViewWithModel_WhenModelStateIsInvalid()
+    public async Task Create_Post_ShouldReturnViewWithModel_WhenModelStateIsInvalid()
     {
         // Arrange
         var mockService = new Mock<IClientService>();
@@ -136,7 +136,7 @@ public class ClientsControllerTests
         invalidViewModel.FirstName = "";
 
         // Act
-        var result = controller.Create(invalidViewModel);
+        var result = await controller.Create(invalidViewModel);
 
         // Assert
         var viewResult = Assert.IsType<ViewResult>(result);
@@ -145,18 +145,17 @@ public class ClientsControllerTests
         mockService.Verify(s => s.CreateClient(It.IsAny<Client>()), Times.Never);
     }
 
-
     [Fact]
-    public void Edit_ShouldReturnViewWithModel_WhenClientExists()
+    public async Task Edit_ShouldReturnViewWithModel_WhenClientExists()
     {
         // Arrange
         var mockService = new Mock<IClientService>();
         var existingClient = GetValidClient();
-        mockService.Setup(s => s.GetClientById(1)).Returns(existingClient);
+        mockService.Setup(s => s.GetClientById(1)).ReturnsAsync(existingClient);
         var controller = CreateController(mockService);
 
         // Act
-        var result = controller.Edit(1);
+        var result = await controller.Edit(1);
 
         // Assert
         var viewResult = Assert.IsType<ViewResult>(result);
@@ -168,22 +167,22 @@ public class ClientsControllerTests
     }
 
     [Fact]
-    public void Edit_ShouldReturnNotFound_WhenClientDoesNotExist()
+    public async Task Edit_ShouldReturnNotFound_WhenClientDoesNotExist()
     {
         // Arrange
         var mockService = new Mock<IClientService>();
-        mockService.Setup(s => s.GetClientById(It.IsAny<int>())).Returns((Client?)null);
+        mockService.Setup(s => s.GetClientById(It.IsAny<int>())).ReturnsAsync((Client?)null);
         var controller = CreateController(mockService);
 
         // Act
-        var result = controller.Edit(999);
+        var result = await controller.Edit(999);
 
         // Assert
         Assert.IsType<NotFoundResult>(result);
     }
 
     [Fact]
-    public void Edit_Post_ShouldRedirectToIndex_WhenModelAndIdAreValid()
+    public async Task Edit_Post_ShouldRedirectToIndex_WhenModelAndIdAreValid()
     {
         // Arrange
         var mockService = new Mock<IClientService>();
@@ -191,7 +190,7 @@ public class ClientsControllerTests
         var updatedViewModel = GetValidViewModel();
 
         // Act
-        var result = controller.Edit(1, updatedViewModel);
+        var result = await controller.Edit(1, updatedViewModel);
 
         // Assert
         var redirectToActionResult = Assert.IsType<RedirectToActionResult>(result);
@@ -200,7 +199,7 @@ public class ClientsControllerTests
     }
 
     [Fact]
-    public void Edit_Post_ShouldReturnNotFound_WhenIdMismatchesModelId()
+    public async Task Edit_Post_ShouldReturnNotFound_WhenIdMismatchesModelId()
     {
         // Arrange
         var mockService = new Mock<IClientService>();
@@ -209,7 +208,7 @@ public class ClientsControllerTests
         tamperedViewModel.Id = 2;
 
         // Act
-        var result = controller.Edit(1, tamperedViewModel);
+        var result = await controller.Edit(1, tamperedViewModel);
 
         // Assert
         Assert.IsType<NotFoundResult>(result);
@@ -218,7 +217,7 @@ public class ClientsControllerTests
 
 
     [Fact]
-    public void Edit_Post_ShouldReturnViewWithModel_WhenModelStateIsInvalid()
+    public async Task Edit_Post_ShouldReturnViewWithModel_WhenModelStateIsInvalid()
     {
         // Arrange
         var mockService = new Mock<IClientService>();
@@ -228,7 +227,7 @@ public class ClientsControllerTests
         invalidViewModel.FirstName = "";
 
         // Act
-        var result = controller.Edit(1, invalidViewModel);
+        var result = await controller.Edit(1, invalidViewModel);
 
         // Assert
         var viewResult = Assert.IsType<ViewResult>(result);
@@ -238,7 +237,7 @@ public class ClientsControllerTests
     }
 
     [Fact]
-    public void Delete_Post_ShouldRedirectToIndex_WhenClientDeleted()
+    public async Task Delete_Post_ShouldRedirectToIndex_WhenClientDeleted()
     {
         // Arrange
         var mockService = new Mock<IClientService>();
@@ -246,7 +245,7 @@ public class ClientsControllerTests
         int targetClientId = 1;
 
         // Act
-        var result = controller.Delete(targetClientId, true);
+        var result = await controller.Delete(targetClientId, true);
 
         // Assert
         var redirectToActionResult = Assert.IsType<RedirectToActionResult>(result);
@@ -255,16 +254,16 @@ public class ClientsControllerTests
     }
 
     [Fact]
-    public void Delete_Post_ShouldSetTempData_WhenDbUpdateExceptionThrown()
+    public async Task Delete_Post_ShouldSetTempData_WhenDbUpdateExceptionThrown()
     {
         // Arrange
         var mockService = new Mock<IClientService>();
-        mockService.Setup(s => s.DeleteClient(It.IsAny<int>(), false)).Throws(new DbUpdateException());
+        mockService.Setup(s => s.DeleteClient(It.IsAny<int>(), false)).ThrowsAsync(new DbUpdateException());
         var controller = CreateController(mockService);
         controller.TempData = new TempDataDictionary(new DefaultHttpContext(), Mock.Of<ITempDataProvider>());
 
         // Act
-        var result = controller.Delete(1);
+        var result = await controller.Delete(1);
 
         // Assert
         var redirectToActionResult = Assert.IsType<RedirectToActionResult>(result);
@@ -273,7 +272,7 @@ public class ClientsControllerTests
     }
 
     [Fact]
-    public void ExportCsv_ShouldReturnCsvFileWithCorrectDataAndHandleNulls_WhenCalled()
+    public async Task ExportCsv_ShouldReturnCsvFileWithCorrectDataAndHandleNulls_WhenCalled()
     {
         // Arrange
         var mockService = new Mock<IClientService>();
@@ -283,13 +282,13 @@ public class ClientsControllerTests
             new() { Id = 2, FirstName = "Alena", LastName = "Prázdná", BirthNumber = "955515/5555", Email = null, Phone = null }
         };
 
-        mockService.Setup(s => s.GetAllClients(It.IsAny<PersonQuery>())).Returns(sampleClients);
+        mockService.Setup(s => s.GetAllClients(It.IsAny<PersonQuery>())).ReturnsAsync(sampleClients);
 
         var controller = CreateController(mockService);
         var query = new PersonQuery();
 
         // Act
-        var result = controller.ExportCsv(query);
+        var result = await controller.ExportCsv(query);
 
         // Assert
         var fileResult = Assert.IsType<FileContentResult>(result);

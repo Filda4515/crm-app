@@ -13,33 +13,32 @@ namespace CrmApp.Controllers;
 public class ContractsController(IContractService contractService, IClientService clientService, IAdvisorService advisorService) : Controller
 {
     // GET: ContractsController
-    public ActionResult Index(ContractQuery query)
+    public async Task<IActionResult> Index(ContractQuery query)
     {
         var vm = new ContractIndexViewModel
         {
-            Contracts = contractService.GetAllContracts(query),
+            Contracts = await contractService.GetAllContracts(query),
             Query = query
         };
         return View(vm);
     }
 
     // GET: ContractsController/Details/5
-    public ActionResult Details(int id)
+    public async Task<IActionResult> Details(int id)
     {
-        var contract = contractService.GetContractById(id);
+        var contract = await contractService.GetContractById(id);
         return contract == null ? NotFound() : View(contract);
     }
 
     // GET: ContractsController/Create
-    public ActionResult Create()
+    public async Task<IActionResult> Create()
     {
-        ViewBag.Clients = clientService.GetAllClients();
-        ViewBag.Advisors = advisorService.GetAllAdvisors();
-
         var vm = new ContractFormViewModel
         {
             RegistrationNumber = "",
-            Institution = ""
+            Institution = "",
+            AvailableClients = await clientService.GetAllClients(),
+            AvailableAdvisors = await advisorService.GetAllAdvisors()
         };
 
         return View(vm);
@@ -48,14 +47,14 @@ public class ContractsController(IContractService contractService, IClientServic
     // POST: ContractsController/Create
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public ActionResult Create(ContractFormViewModel vm)
+    public async Task<IActionResult> Create(ContractFormViewModel vm)
     {
-        var allAdvisors = advisorService.GetAllAdvisors();
+        var allAdvisors = await advisorService.GetAllAdvisors();
 
         if (!ModelState.IsValid)
         {
-            ViewBag.Clients = clientService.GetAllClients();
-            ViewBag.Advisors = allAdvisors;
+            vm.AvailableClients = await clientService.GetAllClients();
+            vm.AvailableAdvisors = allAdvisors;
             return View(vm);
         }
 
@@ -76,21 +75,18 @@ public class ContractsController(IContractService contractService, IClientServic
             newContract.Participants.Add(p);
         }
 
-        contractService.CreateContract(newContract);
+        await contractService.CreateContract(newContract);
         return RedirectToAction(nameof(Index));
     }
 
     // GET: ContractsController/Edit/5
-    public ActionResult Edit(int id)
+    public async Task<IActionResult> Edit(int id)
     {
-        var contract = contractService.GetContractById(id);
+        var contract = await contractService.GetContractById(id);
         if (contract == null)
         {
             return NotFound();
         }
-
-        ViewBag.Clients = clientService.GetAllClients();
-        ViewBag.Advisors = advisorService.GetAllAdvisors();
 
         var vm = new ContractFormViewModel
         {
@@ -102,7 +98,9 @@ public class ContractsController(IContractService contractService, IClientServic
             SignedDate = contract.SignedDate,
             EffectiveDate = contract.EffectiveDate,
             EndDate = contract.EndDate,
-            ParticipantIds = [.. contract.Participants.Select(p => p.Id)]
+            ParticipantIds = [.. contract.Participants.Select(p => p.Id)],
+            AvailableClients = await clientService.GetAllClients(),
+            AvailableAdvisors = await advisorService.GetAllAdvisors()
         };
 
         return View(vm);
@@ -111,19 +109,19 @@ public class ContractsController(IContractService contractService, IClientServic
     // POST: ContractsController/Edit/5
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public ActionResult Edit(int id, ContractFormViewModel vm)
+    public async Task<IActionResult> Edit(int id, ContractFormViewModel vm)
     {
         if (id != vm.Id)
         {
             return NotFound();
         }
 
-        var allAdvisors = advisorService.GetAllAdvisors();
+        var allAdvisors = await advisorService.GetAllAdvisors();
 
         if (!ModelState.IsValid)
         {
-            ViewBag.Clients = clientService.GetAllClients();
-            ViewBag.Advisors = allAdvisors;
+            vm.AvailableClients = await clientService.GetAllClients();
+            vm.AvailableAdvisors = allAdvisors;
             return View(vm);
         }
 
@@ -145,23 +143,23 @@ public class ContractsController(IContractService contractService, IClientServic
             updatedContract.Participants.Add(p);
         }
 
-        contractService.UpdateContract(updatedContract);
+        await contractService.UpdateContract(updatedContract);
         return RedirectToAction(nameof(Index));
     }
 
     // POST: ContractsController/Delete/5
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public ActionResult Delete(int id)
+    public async Task<IActionResult> Delete(int id)
     {
-        contractService.DeleteContract(id);
+        await contractService.DeleteContract(id);
         return RedirectToAction(nameof(Index));
     }
 
     // GET: ContractsController/ExportCsv
-    public ActionResult ExportCsv(ContractQuery query)
+    public async Task<IActionResult> ExportCsv(ContractQuery query)
     {
-        var contracts = contractService.GetAllContracts(query);
+        var contracts = await contractService.GetAllContracts(query);
 
         var sb = new System.Text.StringBuilder();
         sb.Append("Evidenční číslo;Instituce;Klient;Správce;Datum podpisu;Platnost od;Platnost do\r\n");

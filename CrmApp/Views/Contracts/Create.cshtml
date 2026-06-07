@@ -19,7 +19,7 @@
         <div class="col-md-6">
             <label asp-for="ClientId" class="form-label">Klient</label>
             <select asp-for="ClientId" class="form-select"
-                    asp-items="@(((IEnumerable<CrmApp.Models.Client>)ViewBag.Clients).Select(c => new SelectListItem { Value = c.Id.ToString(), Text = $"{c.FirstName} {c.LastName} ({c.BirthNumber})" }))">
+                    asp-items="@(Model.AvailableClients.Select(c => new SelectListItem { Value = c.Id.ToString(), Text = $"{c.FirstName} {c.LastName} ({c.BirthNumber})" }))">
                 <option value="">-- Vyberte klienta --</option>
             </select>
             <span asp-validation-for="ClientId" class="text-danger"></span>
@@ -27,7 +27,7 @@
         <div class="col-md-6">
             <label asp-for="ManagerId" class="form-label">Správce smlouvy (Poradce)</label>
             <select asp-for="ManagerId" class="form-select"
-                    asp-items="@(((IEnumerable<CrmApp.Models.Advisor>)ViewBag.Advisors).Select(a => new SelectListItem { Value = a.Id.ToString(), Text = $"{a.FirstName} {a.LastName}" }))">
+                    asp-items="@(Model.AvailableAdvisors.Select(a => new SelectListItem { Value = a.Id.ToString(), Text = $"{a.FirstName} {a.LastName} ({a.BirthNumber})" }))">
                 <option value="">-- Vyberte správce --</option>
             </select>
             <span asp-validation-for="ManagerId" class="text-danger"></span>
@@ -35,11 +35,11 @@
         <div class="col-md-12 mb-3">
             <label class="form-label">Účastníci (Poradci)</label>
             <select name="ParticipantIds" class="form-select" multiple style="height: 120px;">
-                @foreach (var advisor in (IEnumerable<CrmApp.Models.Advisor>)ViewBag.Advisors)
+                @foreach (var advisor in Model.AvailableAdvisors)
                 {
                     bool isSelected = Model?.ParticipantIds?.Contains(advisor.Id) ?? false;
                     <option value="@advisor.Id" selected="@(isSelected ? "selected" : null)">
-                        @advisor.FirstName @advisor.LastName
+                        @advisor.FirstName @advisor.LastName (@advisor.BirthNumber)
                     </option>
                 }
             </select>

@@ -5,9 +5,9 @@ namespace CrmApp.Services;
 
 public interface IClientService
 {
-    IEnumerable<Client> GetAllClients(PersonQuery? query = null);
-    Client? GetClientById(int id);
-    void CreateClient(Client client);
-    void UpdateClient(Client client);
-    void DeleteClient(int id, bool deleteContracts);
+    Task<IEnumerable<Client>> GetAllClients(PersonQuery? query = null);
+    Task<Client?> GetClientById(int id);
+    Task CreateClient(Client client);
+    Task UpdateClient(Client client);
+    Task DeleteClient(int id, bool deleteContracts);
 }

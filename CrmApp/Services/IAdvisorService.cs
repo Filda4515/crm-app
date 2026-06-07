@@ -5,9 +5,9 @@ namespace CrmApp.Services;
 
 public interface IAdvisorService
 {
-    IEnumerable<Advisor> GetAllAdvisors(PersonQuery? query = null);
-    Advisor? GetAdvisorById(int id);
-    void CreateAdvisor(Advisor advisor);
-    void UpdateAdvisor(Advisor advisor);
-    void DeleteAdvisor(int id, bool deleteContracts);
+    Task<IEnumerable<Advisor>> GetAllAdvisors(PersonQuery? query = null);
+    Task<Advisor?> GetAdvisorById(int id);
+    Task CreateAdvisor(Advisor advisor);
+    Task UpdateAdvisor(Advisor advisor);
+    Task DeleteAdvisor(int id, bool deleteContracts);
 }

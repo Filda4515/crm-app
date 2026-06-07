@@ -5,9 +5,9 @@ namespace CrmApp.Services;
 
 public interface IContractService
 {
-    IEnumerable<Contract> GetAllContracts(ContractQuery? query = null);
-    Contract? GetContractById(int id);
-    void CreateContract(Contract contract);
-    void UpdateContract(Contract contract);
-    void DeleteContract(int id);
+    Task<IEnumerable<Contract>> GetAllContracts(ContractQuery? query = null);
+    Task<Contract?> GetContractById(int id);
+    Task CreateContract(Contract contract);
+    Task UpdateContract(Contract contract);
+    Task DeleteContract(int id);
 }

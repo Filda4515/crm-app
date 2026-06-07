@@ -8,38 +8,38 @@ namespace CrmApp.Services;
 
 public class ClientService(CrmDbContext context) : IClientService
 {
-    public void CreateClient(Client client)
+    public async Task CreateClient(Client client)
     {
         context.Clients.Add(client);
-        context.SaveChanges();
+        await context.SaveChangesAsync();
     }
 
-    public void DeleteClient(int id, bool deleteContracts = false)
+    public async Task DeleteClient(int id, bool deleteContracts = false)
     {
-        var client = context.Clients
+        var client = await context.Clients
             .Include(c => c.Contracts)
-            .FirstOrDefault(c => c.Id == id);
+            .FirstOrDefaultAsync(c => c.Id == id);
 
         if (client != null)
         {
-            if (deleteContracts && client.Contracts != null && client.Contracts.Any())
+            if (deleteContracts && client.Contracts != null && client.Contracts.Count != 0)
             {
                 context.Contracts.RemoveRange(client.Contracts);
             }
 
             context.Clients.Remove(client);
-            context.SaveChanges();
+            await context.SaveChangesAsync();
         }
     }
 
-    public Client? GetClientById(int id)
+    public async Task<Client?> GetClientById(int id)
     {
-        return context.Clients
+        return await context.Clients
             .Include(c => c.Contracts)
-            .FirstOrDefault(c => c.Id == id);
+            .FirstOrDefaultAsync(c => c.Id == id);
     }
 
-    public IEnumerable<Client> GetAllClients(PersonQuery? query = null)
+    public async Task<IEnumerable<Client>> GetAllClients(PersonQuery? query = null)
     {
         var q = context.Clients
             .AsNoTracking()
@@ -65,16 +65,13 @@ public class ClientService(CrmDbContext context) : IClientService
             _ => q.OrderBy(c => c.LastName).ThenBy(c => c.FirstName)
         };
 
-        return [.. q];
+        return await q.ToListAsync();
     }
 
-    public void UpdateClient(Client client)
+    public async Task UpdateClient(Client client)
     {
-        var existingClient = context.Clients.Find(client.Id);
-        if (existingClient != null)
-        {
-            context.Entry(existingClient).CurrentValues.SetValues(client);
-            context.SaveChanges();
-        }
+        var existingClient = await context.Clients.FindAsync(client.Id) ?? throw new KeyNotFoundException($"Záznam s ID {client.Id} nebyl nalezen.");
+        context.Entry(existingClient).CurrentValues.SetValues(client);
+        await context.SaveChangesAsync();
     }
 }

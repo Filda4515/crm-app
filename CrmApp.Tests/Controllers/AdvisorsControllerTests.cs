@@ -43,16 +43,16 @@ public class AdvisorsControllerTests
     }
 
     [Fact]
-    public void Index_ShouldPassQueryToService_WhenCalled()
+    public async Task Index_ShouldPassQueryToService_WhenCalled()
     {
         // Arrange
         var mockService = new Mock<IAdvisorService>();
-        mockService.Setup(s => s.GetAllAdvisors()).Returns([GetValidAdvisor()]);
+        mockService.Setup(s => s.GetAllAdvisors(It.IsAny<PersonQuery>())).ReturnsAsync([GetValidAdvisor()]);
         var controller = CreateController(mockService);
         var query = new PersonQuery { Search = "Testovací dotaz" };
 
         // Act
-        var result = controller.Index(query);
+        var result = await controller.Index(query);
 
         // Assert
         var viewResult = Assert.IsType<ViewResult>(result);
@@ -62,16 +62,16 @@ public class AdvisorsControllerTests
     }
 
     [Fact]
-    public void Details_ShouldReturnViewWithModel_WhenAdvisorExists()
+    public async Task Details_ShouldReturnViewWithModel_WhenAdvisorExists()
     {
         // Arrange
         var mockService = new Mock<IAdvisorService>();
         var existingAdvisor = GetValidAdvisor();
-        mockService.Setup(s => s.GetAdvisorById(1)).Returns(existingAdvisor);
+        mockService.Setup(s => s.GetAdvisorById(1)).ReturnsAsync(existingAdvisor);
         var controller = CreateController(mockService);
 
         // Act
-        var result = controller.Details(1);
+        var result = await controller.Details(1);
 
         // Assert
         var viewResult = Assert.IsType<ViewResult>(result);
@@ -79,15 +79,15 @@ public class AdvisorsControllerTests
     }
 
     [Fact]
-    public void Details_ShouldReturnNotFound_WhenAdvisorDoesNotExist()
+    public async Task Details_ShouldReturnNotFound_WhenAdvisorDoesNotExist()
     {
         // Arrange
         var mockService = new Mock<IAdvisorService>();
-        mockService.Setup(s => s.GetAdvisorById(It.IsAny<int>())).Returns((Advisor?)null);
+        mockService.Setup(s => s.GetAdvisorById(It.IsAny<int>())).ReturnsAsync((Advisor?)null);
         var controller = CreateController(mockService);
 
         // Act
-        var result = controller.Details(999);
+        var result = await controller.Details(999);
 
         // Assert
         Assert.IsType<NotFoundResult>(result);
@@ -108,7 +108,7 @@ public class AdvisorsControllerTests
     }
 
     [Fact]
-    public void Create_Post_ShouldRedirectToIndex_WhenModelStateIsValid()
+    public async Task Create_Post_ShouldRedirectToIndex_WhenModelStateIsValid()
     {
         // Arrange
         var mockService = new Mock<IAdvisorService>();
@@ -116,7 +116,7 @@ public class AdvisorsControllerTests
         var newViewModel = GetValidViewModel();
 
         // Act
-        var result = controller.Create(newViewModel);
+        var result = await controller.Create(newViewModel);
 
         // Assert
         var redirectToActionResult = Assert.IsType<RedirectToActionResult>(result);
@@ -125,7 +125,7 @@ public class AdvisorsControllerTests
     }
 
     [Fact]
-    public void Create_Post_ShouldReturnViewWithModel_WhenModelStateIsInvalid()
+    public async Task Create_Post_ShouldReturnViewWithModel_WhenModelStateIsInvalid()
     {
         // Arrange
         var mockService = new Mock<IAdvisorService>();
@@ -135,7 +135,7 @@ public class AdvisorsControllerTests
         invalidViewModel.FirstName = "";
 
         // Act
-        var result = controller.Create(invalidViewModel);
+        var result = await controller.Create(invalidViewModel);
 
         // Assert
         var viewResult = Assert.IsType<ViewResult>(result);
@@ -145,16 +145,16 @@ public class AdvisorsControllerTests
     }
 
     [Fact]
-    public void Edit_ShouldReturnViewWithViewModel_WhenAdvisorExists()
+    public async Task Edit_ShouldReturnViewWithViewModel_WhenAdvisorExists()
     {
         // Arrange
         var mockService = new Mock<IAdvisorService>();
         var existingAdvisor = GetValidAdvisor();
-        mockService.Setup(s => s.GetAdvisorById(1)).Returns(existingAdvisor);
+        mockService.Setup(s => s.GetAdvisorById(1)).ReturnsAsync(existingAdvisor);
         var controller = CreateController(mockService);
 
         // Act
-        var result = controller.Edit(1);
+        var result = await controller.Edit(1);
 
         // Assert
         var viewResult = Assert.IsType<ViewResult>(result);
@@ -166,22 +166,22 @@ public class AdvisorsControllerTests
     }
 
     [Fact]
-    public void Edit_ShouldReturnNotFound_WhenAdvisorDoesNotExist()
+    public async Task Edit_ShouldReturnNotFound_WhenAdvisorDoesNotExist()
     {
         // Arrange
         var mockService = new Mock<IAdvisorService>();
-        mockService.Setup(s => s.GetAdvisorById(It.IsAny<int>())).Returns((Advisor?)null);
+        mockService.Setup(s => s.GetAdvisorById(It.IsAny<int>())).ReturnsAsync((Advisor?)null);
         var controller = CreateController(mockService);
 
         // Act
-        var result = controller.Edit(999);
+        var result = await controller.Edit(999);
 
         // Assert
         Assert.IsType<NotFoundResult>(result);
     }
 
     [Fact]
-    public void Edit_Post_ShouldRedirectToIndex_WhenModelAndIdAreValid()
+    public async Task Edit_Post_ShouldRedirectToIndex_WhenModelAndIdAreValid()
     {
         // Arrange
         var mockService = new Mock<IAdvisorService>();
@@ -189,7 +189,7 @@ public class AdvisorsControllerTests
         var updatedViewModel = GetValidViewModel();
 
         // Act
-        var result = controller.Edit(1, updatedViewModel);
+        var result = await controller.Edit(1, updatedViewModel);
 
         // Assert
         var redirectToActionResult = Assert.IsType<RedirectToActionResult>(result);
@@ -198,7 +198,7 @@ public class AdvisorsControllerTests
     }
 
     [Fact]
-    public void Edit_Post_ShouldReturnNotFound_WhenIdMismatchesModelId()
+    public async Task Edit_Post_ShouldReturnNotFound_WhenIdMismatchesModelId()
     {
         // Arrange
         var mockService = new Mock<IAdvisorService>();
@@ -207,7 +207,7 @@ public class AdvisorsControllerTests
         tamperedViewModel.Id = 2;
 
         // Act
-        var result = controller.Edit(1, tamperedViewModel);
+        var result = await controller.Edit(1, tamperedViewModel);
 
         // Assert
         Assert.IsType<NotFoundResult>(result);
@@ -215,7 +215,7 @@ public class AdvisorsControllerTests
     }
 
     [Fact]
-    public void Edit_Post_ShouldReturnViewWithModel_WhenModelStateIsInvalid()
+    public async Task Edit_Post_ShouldReturnViewWithModel_WhenModelStateIsInvalid()
     {
         // Arrange
         var mockService = new Mock<IAdvisorService>();
@@ -225,7 +225,7 @@ public class AdvisorsControllerTests
         invalidViewModel.FirstName = "";
 
         // Act
-        var result = controller.Edit(1, invalidViewModel);
+        var result = await controller.Edit(1, invalidViewModel);
 
         // Assert
         var viewResult = Assert.IsType<ViewResult>(result);
@@ -235,7 +235,7 @@ public class AdvisorsControllerTests
     }
 
     [Fact]
-    public void Delete_Post_ShouldRedirectToIndex_WhenAdvisorDeleted()
+    public async Task Delete_Post_ShouldRedirectToIndex_WhenAdvisorDeleted()
     {
         // Arrange
         var mockService = new Mock<IAdvisorService>();
@@ -243,7 +243,7 @@ public class AdvisorsControllerTests
         int targetAdvisorId = 1;
 
         // Act
-        var result = controller.Delete(targetAdvisorId, true);
+        var result = await controller.Delete(targetAdvisorId, true);
 
         // Assert
         var redirectToActionResult = Assert.IsType<RedirectToActionResult>(result);
@@ -252,16 +252,16 @@ public class AdvisorsControllerTests
     }
 
     [Fact]
-    public void Delete_Post_ShouldSetTempData_WhenDbUpdateExceptionThrown()
+    public async Task Delete_Post_ShouldSetTempData_WhenDbUpdateExceptionThrown()
     {
         // Arrange
         var mockService = new Mock<IAdvisorService>();
-        mockService.Setup(s => s.DeleteAdvisor(It.IsAny<int>(), false)).Throws(new DbUpdateException());
+        mockService.Setup(s => s.DeleteAdvisor(It.IsAny<int>(), false)).ThrowsAsync(new DbUpdateException());
         var controller = CreateController(mockService);
         controller.TempData = new TempDataDictionary(new DefaultHttpContext(), Mock.Of<ITempDataProvider>());
 
         // Act
-        var result = controller.Delete(1);
+        var result = await controller.Delete(1);
 
         // Assert
         var redirectToActionResult = Assert.IsType<RedirectToActionResult>(result);
@@ -270,7 +270,7 @@ public class AdvisorsControllerTests
     }
 
     [Fact]
-    public void ExportCsv_ShouldReturnCsvFileWithCorrectDataAndHandleNulls_WhenCalled()
+    public async Task ExportCsv_ShouldReturnCsvFileWithCorrectDataAndHandleNulls_WhenCalled()
     {
         // Arrange
         var mockService = new Mock<IAdvisorService>();
@@ -280,13 +280,13 @@ public class AdvisorsControllerTests
             new() { Id = 2, FirstName = "Pavel", LastName = "Prázdný", BirthNumber = "900101/0000", Email = null, Phone = null }
         };
 
-        mockService.Setup(s => s.GetAllAdvisors(It.IsAny<PersonQuery>())).Returns(sampleAdvisors);
+        mockService.Setup(s => s.GetAllAdvisors(It.IsAny<PersonQuery>())).ReturnsAsync(sampleAdvisors);
 
         var controller = CreateController(mockService);
         var query = new PersonQuery();
 
         // Act
-        var result = controller.ExportCsv(query);
+        var result = await controller.ExportCsv(query);
 
         // Assert
         var fileResult = Assert.IsType<FileContentResult>(result);

@@ -168,13 +168,17 @@ Aplikace obsluhuje CRUD operace pro každou z hlavních entit (`Clients`, `Advis
 ### Testování
 Testovací projekt: `CrmApp.Tests`
 
-Testy jsou postaveny na frameworku **xUnit** ve spojení s knihovnou **Moq**. Test-Driven Development (TDD) přístup se zaměřením na izolaci business logiky od UI.
+Testy jsou postaveny na frameworku **xUnit** ve spojení s knihovnou **Moq**. Slouží k psaní izolovaných unit testů (unit testing) se zaměřením na logiku service vrstvy a oddělení business pravidel od uživatelského rozhraní.
 
 ### Security
 - Cookie Authentication middleware
 - `[Authorize]` na všech kontrolerech
 - CSRF ochrana (`[ValidateAntiForgeryToken]` pro POST requesty)
 - User Secrets pro ukonfiguraci přihlášení
+
+### Známá omezení (Known Limitations)
+Aktuální verze aplikace má následující omezení:
+- **Jednouživatelská autentizace:** Systém aktuálně využívá `User Secrets` pro přihlášení jediného administrátora, neobsahuje plnohodnotný Identity management.
 
 ## Spuštění aplikace
 
@@ -192,18 +196,22 @@ Konfigurace:
 
 #### Požadavky
 
-- .NET SDK
-- SQL Server Express
+- **.NET 10.0 SDK** (nutné pro kompilaci)
+- **SQL Server Express** (lokální databázový server pro uložení dat)
 
 #### Vytvoření databáze
 
+Aby aplikace fungovala, musí mít připravenou strukturu databáze. Otevřete terminál, přejděte do složky samotného projektu (`CrmApp`) a spusťte migraci:
+
 ```bash
+cd CrmApp
 dotnet ef database update
 ```
 
 #### Spuštění
 
 ```bash
+cd CrmApp
 dotnet run
 ```
 

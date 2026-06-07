@@ -34,6 +34,9 @@ public class ContractFormViewModel : IValidatableObject
 
     public List<int> ParticipantIds { get; set; } = [];
 
+    public IEnumerable<Client> AvailableClients { get; set; } = [];
+    public IEnumerable<Advisor> AvailableAdvisors { get; set; } = [];
+
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
         if (EffectiveDate.Date < SignedDate.Date)

@@ -8,17 +8,17 @@ namespace CrmApp.Services;
 
 public class AdvisorService(CrmDbContext context) : IAdvisorService
 {
-    public void CreateAdvisor(Advisor advisor)
+    public async Task CreateAdvisor(Advisor advisor)
     {
         context.Advisors.Add(advisor);
-        context.SaveChanges();
+        await context.SaveChangesAsync();
     }
 
-    public void DeleteAdvisor(int id, bool deleteContracts = false)
+    public async Task DeleteAdvisor(int id, bool deleteContracts = false)
     {
-        var advisor = context.Advisors
+        var advisor = await context.Advisors
             .Include(a => a.ManagedContracts)
-            .FirstOrDefault(a => a.Id == id);
+            .FirstOrDefaultAsync(a => a.Id == id);
 
         if (advisor != null)
         {
@@ -28,19 +28,19 @@ public class AdvisorService(CrmDbContext context) : IAdvisorService
             }
 
             context.Advisors.Remove(advisor);
-            context.SaveChanges();
+            await context.SaveChangesAsync();
         }
     }
 
-    public Advisor? GetAdvisorById(int id)
+    public async Task<Advisor?> GetAdvisorById(int id)
     {
-        return context.Advisors
+        return await context.Advisors
             .Include(a => a.ManagedContracts)
             .Include(a => a.ParticipatedContracts)
-            .FirstOrDefault(c => c.Id == id);
+            .FirstOrDefaultAsync(c => c.Id == id);
     }
 
-    public IEnumerable<Advisor> GetAllAdvisors(PersonQuery? query = null)
+    public async Task<IEnumerable<Advisor>> GetAllAdvisors(PersonQuery? query = null)
     {
         var q = context.Advisors
             .AsNoTracking()
@@ -66,16 +66,13 @@ public class AdvisorService(CrmDbContext context) : IAdvisorService
             _ => q.OrderBy(c => c.LastName).ThenBy(c => c.FirstName)
         };
 
-        return [.. q];
+        return await q.ToListAsync();
     }
 
-    public void UpdateAdvisor(Advisor advisor)
+    public async Task UpdateAdvisor(Advisor advisor)
     {
-        var existingAdvisor = context.Advisors.Find(advisor.Id);
-        if (existingAdvisor != null)
-        {
-            context.Entry(existingAdvisor).CurrentValues.SetValues(advisor);
-            context.SaveChanges();
-        }
+        var existingAdvisor = await context.Advisors.FindAsync(advisor.Id) ?? throw new KeyNotFoundException($"Záznam s ID {advisor.Id} nebyl nalezen.");
+        context.Entry(existingAdvisor).CurrentValues.SetValues(advisor);
+        await context.SaveChangesAsync();
     }
 }

@@ -14,25 +14,25 @@ namespace CrmApp.Controllers;
 public class ClientsController(IClientService clientService) : Controller
 {
     // GET: ClientsController
-    public ActionResult Index(PersonQuery query)
+    public async Task<IActionResult> Index(PersonQuery query)
     {
         var vm = new ClientIndexViewModel
         {
-            Clients = clientService.GetAllClients(query),
+            Clients = await clientService.GetAllClients(query),
             Query = query
         };
         return View(vm);
     }
 
     // GET: ClientsController/Details/5
-    public ActionResult Details(int id)
+    public async Task<IActionResult> Details(int id)
     {
-        var client = clientService.GetClientById(id);
+        var client = await clientService.GetClientById(id);
         return client == null ? NotFound() : View(client);
     }
 
     // GET: ClientsController/Create
-    public ActionResult Create()
+    public IActionResult Create()
     {
         var vm = new ClientFormViewModel
         {
@@ -46,7 +46,7 @@ public class ClientsController(IClientService clientService) : Controller
     // POST: ClientsController/Create
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public ActionResult Create(ClientFormViewModel vm)
+    public async Task<IActionResult> Create(ClientFormViewModel vm)
     {
         if (!ModelState.IsValid)
         {
@@ -62,14 +62,14 @@ public class ClientsController(IClientService clientService) : Controller
             BirthNumber = vm.BirthNumber
         };
 
-        clientService.CreateClient(newClient);
+        await clientService.CreateClient(newClient);
         return RedirectToAction(nameof(Index));
     }
 
     // GET: ClientsController/Edit/5
-    public ActionResult Edit(int id)
+    public async Task<IActionResult> Edit(int id)
     {
-        var client = clientService.GetClientById(id);
+        var client = await clientService.GetClientById(id);
         if (client == null)
         {
             return NotFound();
@@ -91,7 +91,7 @@ public class ClientsController(IClientService clientService) : Controller
     // POST: ClientsController/Edit/5
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public ActionResult Edit(int id, ClientFormViewModel vm)
+    public async Task<IActionResult> Edit(int id, ClientFormViewModel vm)
     {
         if (id != vm.Id)
         {
@@ -113,18 +113,18 @@ public class ClientsController(IClientService clientService) : Controller
             BirthNumber = vm.BirthNumber
         };
 
-        clientService.UpdateClient(updatedClient);
+        await clientService.UpdateClient(updatedClient);
         return RedirectToAction(nameof(Index));
     }
 
     // POST: ClientsController/Delete/5
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public ActionResult Delete(int id, bool deleteContracts = false)
+    public async Task<IActionResult> Delete(int id, bool deleteContracts = false)
     {
         try
         {
-            clientService.DeleteClient(id, deleteContracts);
+            await clientService.DeleteClient(id, deleteContracts);
             return RedirectToAction(nameof(Index));
         }
         catch (DbUpdateException)
@@ -135,9 +135,9 @@ public class ClientsController(IClientService clientService) : Controller
     }
 
     // GET: ClientsController/ExportCsv
-    public ActionResult ExportCsv(PersonQuery query)
+    public async Task<IActionResult> ExportCsv(PersonQuery query)
     {
-        var clients = clientService.GetAllClients(query);
+        var clients = await clientService.GetAllClients(query);
 
         var sb = new System.Text.StringBuilder();
         sb.Append("Jméno;Příjmení;Rodné číslo;Věk;E-mail;Telefon\r\n");

@@ -6,7 +6,6 @@ namespace CrmApp.Models.ViewModels;
 
 public abstract class PersonFormViewModel : IValidatableObject
 {
-    [Key]
     public int Id { get; set; }
 
     [Required(ErrorMessage = "Jméno je povinné.")]
@@ -40,6 +39,7 @@ public abstract class PersonFormViewModel : IValidatableObject
         if (dob == null)
         {
             yield return new ValidationResult("Rodné číslo neobsahuje platné datum narození.", [nameof(BirthNumber)]);
+            yield break;
         }
 
         var age = BirthNumber!.GetAge();

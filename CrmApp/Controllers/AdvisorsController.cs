@@ -14,25 +14,25 @@ namespace CrmApp.Controllers;
 public class AdvisorsController(IAdvisorService advisorService) : Controller
 {
     // GET: AdvisorsController
-    public ActionResult Index(PersonQuery query)
+    public async Task<IActionResult> Index(PersonQuery query)
     {
         var vm = new AdvisorIndexViewModel
         {
-            Advisors = advisorService.GetAllAdvisors(query),
+            Advisors = await advisorService.GetAllAdvisors(query),
             Query = query
         };
         return View(vm);
     }
 
     // GET: AdvisorsController/Details/5
-    public ActionResult Details(int id)
+    public async Task<IActionResult> Details(int id)
     {
-        var advisor = advisorService.GetAdvisorById(id);
+        var advisor = await advisorService.GetAdvisorById(id);
         return advisor == null ? NotFound() : View(advisor);
     }
 
     // GET: AdvisorsController/Create
-    public ActionResult Create()
+    public IActionResult Create()
     {
         var vm = new AdvisorFormViewModel
         {
@@ -46,7 +46,7 @@ public class AdvisorsController(IAdvisorService advisorService) : Controller
     // POST: AdvisorsController/Create
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public ActionResult Create(AdvisorFormViewModel vm)
+    public async Task<IActionResult> Create(AdvisorFormViewModel vm)
     {
         if (!ModelState.IsValid)
         {
@@ -62,14 +62,14 @@ public class AdvisorsController(IAdvisorService advisorService) : Controller
             BirthNumber = vm.BirthNumber
         };
 
-        advisorService.CreateAdvisor(newAdvisor);
+        await advisorService.CreateAdvisor(newAdvisor);
         return RedirectToAction(nameof(Index));
     }
 
     // GET: AdvisorsController/Edit/5
-    public ActionResult Edit(int id)
+    public async Task<IActionResult> Edit(int id)
     {
-        var advisor = advisorService.GetAdvisorById(id);
+        var advisor = await advisorService.GetAdvisorById(id);
         if (advisor == null)
         {
             return NotFound();
@@ -91,7 +91,7 @@ public class AdvisorsController(IAdvisorService advisorService) : Controller
     // POST: AdvisorsController/Edit/5
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public ActionResult Edit(int id, AdvisorFormViewModel vm)
+    public async Task<IActionResult> Edit(int id, AdvisorFormViewModel vm)
     {
         if (id != vm.Id)
         {
@@ -113,18 +113,18 @@ public class AdvisorsController(IAdvisorService advisorService) : Controller
             BirthNumber = vm.BirthNumber
         };
 
-        advisorService.UpdateAdvisor(updatedAdvisor);
+        await advisorService.UpdateAdvisor(updatedAdvisor);
         return RedirectToAction(nameof(Index));
     }
 
     // POST: AdvisorsController/Delete/5
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public ActionResult Delete(int id, bool deleteContracts = false)
+    public async Task<IActionResult> Delete(int id, bool deleteContracts = false)
     {
         try
         {
-            advisorService.DeleteAdvisor(id, deleteContracts);
+            await advisorService.DeleteAdvisor(id, deleteContracts);
             return RedirectToAction(nameof(Index));
         }
         catch (DbUpdateException)
@@ -135,16 +135,16 @@ public class AdvisorsController(IAdvisorService advisorService) : Controller
     }
 
     // GET: AdvisorsController/ExportCsv
-    public ActionResult ExportCsv(PersonQuery query)
+    public async Task<IActionResult> ExportCsv(PersonQuery query)
     {
-        var advisors = advisorService.GetAllAdvisors(query);
+        var advisors = await advisorService.GetAllAdvisors(query);
 
         var sb = new System.Text.StringBuilder();
         sb.Append("Jméno;Příjmení;Rodné číslo;Věk;E-mail;Telefon\r\n");
 
         foreach (var a in advisors)
         {
-            sb.Append($"{a.FirstName.EscapeCsv()};{a.LastName.EscapeCsv()};{a.BirthNumber};{a.Age};{a.Email.EscapeCsv()};{a.Phone.EscapeCsv()}\r\n");
+            sb.Append($"{a.FirstName.EscapeCsv()};{a.LastName.EscapeCsv()};{a.BirthNumber.EscapeCsv()};{a.Age};{a.Email.EscapeCsv()};{a.Phone.EscapeCsv()}\r\n");
         }
 
         return File(sb.GetCsvBytes(), "text/csv", "poradci.csv");

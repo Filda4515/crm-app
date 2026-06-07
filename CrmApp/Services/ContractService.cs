@@ -8,32 +8,39 @@ namespace CrmApp.Services;
 
 public class ContractService(CrmDbContext context) : IContractService
 {
-    public void CreateContract(Contract contract)
+    public async Task CreateContract(Contract contract)
     {
+        if (contract.Participants != null)
+        {
+            foreach (var participant in contract.Participants)
+            {
+                context.Advisors.Attach(participant);
+            }
+        }
         context.Contracts.Add(contract);
-        context.SaveChanges();
+        await context.SaveChangesAsync();
     }
 
-    public void DeleteContract(int id)
+    public async Task DeleteContract(int id)
     {
-        var contract = context.Contracts.Find(id);
+        var contract = await context.Contracts.FindAsync(id);
         if (contract != null)
         {
             context.Contracts.Remove(contract);
-            context.SaveChanges();
+            await context.SaveChangesAsync();
         }
     }
 
-    public Contract? GetContractById(int id)
+    public async Task<Contract?> GetContractById(int id)
     {
-        return context.Contracts
+        return await context.Contracts
             .Include(c => c.Client)
             .Include(c => c.Manager)
             .Include(c => c.Participants)
-            .FirstOrDefault(c => c.Id == id);
+            .FirstOrDefaultAsync(c => c.Id == id);
     }
 
-    public IEnumerable<Contract> GetAllContracts(ContractQuery? query = null)
+    public async Task<IEnumerable<Contract>> GetAllContracts(ContractQuery? query = null)
     {
         var q = context.Contracts
             .AsNoTracking()
@@ -77,26 +84,27 @@ public class ContractService(CrmDbContext context) : IContractService
             _ => q.OrderByDescending(c => c.SignedDate)
         };
 
-        return [.. q];
+        return await q.ToListAsync();
     }
 
-    public void UpdateContract(Contract contract)
+    public async Task UpdateContract(Contract contract)
     {
-        var existingContract = context.Contracts
-        .Include(c => c.Participants)
-        .FirstOrDefault(c => c.Id == contract.Id);
+        var existingContract = await context.Contracts
+            .Include(c => c.Participants)
+            .FirstOrDefaultAsync(c => c.Id == contract.Id)
+            ?? throw new KeyNotFoundException($"Záznam s ID {contract.Id} nebyl nalezen.");
 
-        if (existingContract != null)
+        context.Entry(existingContract).CurrentValues.SetValues(contract);
+
+        if (contract.Participants != null)
         {
-            context.Entry(existingContract).CurrentValues.SetValues(contract);
-
-            if (contract.Participants != null)
-            {
-                var participantIds = contract.Participants.Select(p => p.Id).ToList();
-                existingContract.Participants.Clear();
-                existingContract.Participants = [.. context.Advisors.Where(a => participantIds.Contains(a.Id))];
-            }
-            context.SaveChanges();
+            var participantIds = contract.Participants.Select(p => p.Id).ToList();
+            existingContract.Participants.Clear();
+            existingContract.Participants = await context.Advisors
+                .Where(a => participantIds.Contains(a.Id))
+                .ToListAsync();
         }
+
+        await context.SaveChangesAsync();
     }
 }
