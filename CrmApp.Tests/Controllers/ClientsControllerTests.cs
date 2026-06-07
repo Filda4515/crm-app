@@ -146,6 +146,25 @@ public class ClientsControllerTests
     }
 
     [Fact]
+    public async Task Create_Post_ShouldReturnViewWithModelError_WhenDbUpdateExceptionThrown()
+    {
+        // Arrange
+        var mockService = new Mock<IClientService>();
+        mockService.Setup(s => s.CreateClient(It.IsAny<Client>())).ThrowsAsync(new DbUpdateException());
+        var controller = CreateController(mockService);
+        var newViewModel = GetValidViewModel();
+
+        // Act
+        var result = await controller.Create(newViewModel);
+
+        // Assert
+        var viewResult = Assert.IsType<ViewResult>(result);
+        var model = Assert.IsType<ClientFormViewModel>(viewResult.Model);
+        Assert.False(controller.ModelState.IsValid);
+        Assert.True(controller.ModelState.ContainsKey("BirthNumber"));
+    }
+
+    [Fact]
     public async Task Edit_ShouldReturnViewWithModel_WhenClientExists()
     {
         // Arrange
@@ -234,6 +253,25 @@ public class ClientsControllerTests
         var model = Assert.IsType<ClientFormViewModel>(viewResult.Model);
         Assert.Equal(invalidViewModel.Id, model.Id);
         mockService.Verify(s => s.UpdateClient(It.IsAny<Client>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Edit_Post_ShouldReturnViewWithModelError_WhenDbUpdateExceptionThrown()
+    {
+        // Arrange
+        var mockService = new Mock<IClientService>();
+        mockService.Setup(s => s.UpdateClient(It.IsAny<Client>())).ThrowsAsync(new DbUpdateException());
+        var controller = CreateController(mockService);
+        var updatedViewModel = GetValidViewModel();
+
+        // Act
+        var result = await controller.Edit(1, updatedViewModel);
+
+        // Assert
+        var viewResult = Assert.IsType<ViewResult>(result);
+        var model = Assert.IsType<ClientFormViewModel>(viewResult.Model);
+        Assert.False(controller.ModelState.IsValid);
+        Assert.True(controller.ModelState.ContainsKey("BirthNumber"));
     }
 
     [Fact]

@@ -5,6 +5,7 @@ using CrmApp.Models.ViewModels;
 using CrmApp.Services;
 
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 using Moq;
 
@@ -178,6 +179,31 @@ public class ContractsControllerTests
     }
 
     [Fact]
+    public async Task Create_Post_ShouldReturnViewWithModelError_WhenDbUpdateExceptionThrown()
+    {
+        // Arrange
+        var mockContract = new Mock<IContractService>();
+        var mockClient = new Mock<IClientService>();
+        var mockAdvisor = new Mock<IAdvisorService>();
+
+        mockContract.Setup(s => s.CreateContract(It.IsAny<Contract>())).ThrowsAsync(new DbUpdateException());
+        mockClient.Setup(s => s.GetAllClients(It.IsAny<PersonQuery>())).ReturnsAsync([]);
+        mockAdvisor.Setup(s => s.GetAllAdvisors(It.IsAny<PersonQuery>())).ReturnsAsync([]);
+
+        var controller = CreateController(mockContract, mockClient, mockAdvisor);
+        var newViewModel = GetValidViewModel();
+
+        // Act
+        var result = await controller.Create(newViewModel);
+
+        // Assert
+        var viewResult = Assert.IsType<ViewResult>(result);
+        var model = Assert.IsType<ContractFormViewModel>(viewResult.Model);
+        Assert.False(controller.ModelState.IsValid);
+        Assert.True(controller.ModelState.ContainsKey("RegistrationNumber"));
+    }
+
+    [Fact]
     public async Task Edit_ShouldReturnViewWithViewModel_WhenContractExists()
     {
         // Arrange
@@ -284,6 +310,31 @@ public class ContractsControllerTests
         mockContract.Verify(s => s.UpdateContract(It.IsAny<Contract>()), Times.Never);
         mockClient.Verify(s => s.GetAllClients(It.IsAny<PersonQuery>()), Times.Once);
         mockAdvisor.Verify(s => s.GetAllAdvisors(It.IsAny<PersonQuery>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Edit_Post_ShouldReturnViewWithModelError_WhenDbUpdateExceptionThrown()
+    {
+        // Arrange
+        var mockContract = new Mock<IContractService>();
+        var mockClient = new Mock<IClientService>();
+        var mockAdvisor = new Mock<IAdvisorService>();
+
+        mockContract.Setup(s => s.UpdateContract(It.IsAny<Contract>())).ThrowsAsync(new DbUpdateException());
+        mockClient.Setup(s => s.GetAllClients(It.IsAny<PersonQuery>())).ReturnsAsync([]);
+        mockAdvisor.Setup(s => s.GetAllAdvisors(It.IsAny<PersonQuery>())).ReturnsAsync([]);
+
+        var controller = CreateController(mockContract, mockClient, mockAdvisor);
+        var updatedViewModel = GetValidViewModel();
+
+        // Act
+        var result = await controller.Edit(1, updatedViewModel);
+
+        // Assert
+        var viewResult = Assert.IsType<ViewResult>(result);
+        var model = Assert.IsType<ContractFormViewModel>(viewResult.Model);
+        Assert.False(controller.ModelState.IsValid);
+        Assert.True(controller.ModelState.ContainsKey("RegistrationNumber"));
     }
 
     [Fact]

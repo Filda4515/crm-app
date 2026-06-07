@@ -145,6 +145,25 @@ public class AdvisorsControllerTests
     }
 
     [Fact]
+    public async Task Create_Post_ShouldReturnViewWithModelError_WhenDbUpdateExceptionThrown()
+    {
+        // Arrange
+        var mockService = new Mock<IAdvisorService>();
+        mockService.Setup(s => s.CreateAdvisor(It.IsAny<Advisor>())).ThrowsAsync(new DbUpdateException());
+        var controller = CreateController(mockService);
+        var newViewModel = GetValidViewModel();
+
+        // Act
+        var result = await controller.Create(newViewModel);
+
+        // Assert
+        var viewResult = Assert.IsType<ViewResult>(result);
+        var model = Assert.IsType<AdvisorFormViewModel>(viewResult.Model);
+        Assert.False(controller.ModelState.IsValid);
+        Assert.True(controller.ModelState.ContainsKey("BirthNumber"));
+    }
+
+    [Fact]
     public async Task Edit_ShouldReturnViewWithViewModel_WhenAdvisorExists()
     {
         // Arrange
@@ -232,6 +251,25 @@ public class AdvisorsControllerTests
         var model = Assert.IsType<AdvisorFormViewModel>(viewResult.Model);
         Assert.Equal(invalidViewModel.Id, model.Id);
         mockService.Verify(s => s.UpdateAdvisor(It.IsAny<Advisor>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Edit_Post_ShouldReturnViewWithModelError_WhenDbUpdateExceptionThrown()
+    {
+        // Arrange
+        var mockService = new Mock<IAdvisorService>();
+        mockService.Setup(s => s.UpdateAdvisor(It.IsAny<Advisor>())).ThrowsAsync(new DbUpdateException());
+        var controller = CreateController(mockService);
+        var updatedViewModel = GetValidViewModel();
+
+        // Act
+        var result = await controller.Edit(1, updatedViewModel);
+
+        // Assert
+        var viewResult = Assert.IsType<ViewResult>(result);
+        var model = Assert.IsType<AdvisorFormViewModel>(viewResult.Model);
+        Assert.False(controller.ModelState.IsValid);
+        Assert.True(controller.ModelState.ContainsKey("BirthNumber"));
     }
 
     [Fact]

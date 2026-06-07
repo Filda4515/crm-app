@@ -14,6 +14,18 @@ public class CrmDbContext(DbContextOptions<CrmDbContext> options) : DbContext(op
     {
         modelBuilder.UseCollation("Latin1_General_CI_AI");
 
+        modelBuilder.Entity<Client>()
+            .HasIndex(c => c.BirthNumber)
+            .IsUnique();
+
+        modelBuilder.Entity<Advisor>()
+            .HasIndex(a => a.BirthNumber)
+            .IsUnique();
+
+        modelBuilder.Entity<Contract>()
+            .HasIndex(c => c.RegistrationNumber)
+            .IsUnique();
+
         base.OnModelCreating(modelBuilder);
 
         modelBuilder.Entity<Contract>()

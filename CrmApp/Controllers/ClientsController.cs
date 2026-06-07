@@ -62,8 +62,16 @@ public class ClientsController(IClientService clientService) : Controller
             BirthNumber = vm.BirthNumber
         };
 
-        await clientService.CreateClient(newClient);
-        return RedirectToAction(nameof(Index));
+        try
+        {
+            await clientService.CreateClient(newClient);
+            return RedirectToAction(nameof(Index));
+        }
+        catch (DbUpdateException)
+        {
+            ModelState.AddModelError(nameof(vm.BirthNumber), "Osoba s tímto rodným číslem již existuje.");
+            return View(vm);
+        }
     }
 
     // GET: ClientsController/Edit/5
@@ -113,8 +121,16 @@ public class ClientsController(IClientService clientService) : Controller
             BirthNumber = vm.BirthNumber
         };
 
-        await clientService.UpdateClient(updatedClient);
-        return RedirectToAction(nameof(Index));
+        try
+        {
+            await clientService.UpdateClient(updatedClient);
+            return RedirectToAction(nameof(Index));
+        }
+        catch (DbUpdateException)
+        {
+            ModelState.AddModelError(nameof(vm.BirthNumber), "Osoba s tímto rodným číslem již existuje.");
+            return View(vm);
+        }
     }
 
     // POST: ClientsController/Delete/5

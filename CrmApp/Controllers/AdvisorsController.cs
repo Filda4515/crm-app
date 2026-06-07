@@ -62,8 +62,16 @@ public class AdvisorsController(IAdvisorService advisorService) : Controller
             BirthNumber = vm.BirthNumber
         };
 
-        await advisorService.CreateAdvisor(newAdvisor);
-        return RedirectToAction(nameof(Index));
+        try
+        {
+            await advisorService.CreateAdvisor(newAdvisor);
+            return RedirectToAction(nameof(Index));
+        }
+        catch (DbUpdateException)
+        {
+            ModelState.AddModelError(nameof(vm.BirthNumber), "Osoba s tímto rodným číslem již existuje.");
+            return View(vm);
+        }
     }
 
     // GET: AdvisorsController/Edit/5
@@ -113,8 +121,16 @@ public class AdvisorsController(IAdvisorService advisorService) : Controller
             BirthNumber = vm.BirthNumber
         };
 
-        await advisorService.UpdateAdvisor(updatedAdvisor);
-        return RedirectToAction(nameof(Index));
+        try
+        {
+            await advisorService.UpdateAdvisor(updatedAdvisor);
+            return RedirectToAction(nameof(Index));
+        }
+        catch (DbUpdateException)
+        {
+            ModelState.AddModelError(nameof(vm.BirthNumber), "Osoba s tímto rodným číslem již existuje.");
+            return View(vm);
+        }
     }
 
     // POST: AdvisorsController/Delete/5

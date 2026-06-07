@@ -6,6 +6,7 @@ using CrmApp.Services;
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace CrmApp.Controllers;
 
@@ -75,8 +76,18 @@ public class ContractsController(IContractService contractService, IClientServic
             newContract.Participants.Add(p);
         }
 
-        await contractService.CreateContract(newContract);
-        return RedirectToAction(nameof(Index));
+        try
+        {
+            await contractService.CreateContract(newContract);
+            return RedirectToAction(nameof(Index));
+        }
+        catch (DbUpdateException)
+        {
+            ModelState.AddModelError(nameof(vm.RegistrationNumber), "Smlouva s tímto evidenčním číslem již existuje.");
+            vm.AvailableClients = await clientService.GetAllClients();
+            vm.AvailableAdvisors = allAdvisors;
+            return View(vm);
+        }
     }
 
     // GET: ContractsController/Edit/5
@@ -143,8 +154,18 @@ public class ContractsController(IContractService contractService, IClientServic
             updatedContract.Participants.Add(p);
         }
 
-        await contractService.UpdateContract(updatedContract);
-        return RedirectToAction(nameof(Index));
+        try
+        {
+            await contractService.UpdateContract(updatedContract);
+            return RedirectToAction(nameof(Index));
+        }
+        catch (DbUpdateException)
+        {
+            ModelState.AddModelError(nameof(vm.RegistrationNumber), "Smlouva s tímto evidenčním číslem již existuje.");
+            vm.AvailableClients = await clientService.GetAllClients();
+            vm.AvailableAdvisors = allAdvisors;
+            return View(vm);
+        }
     }
 
     // POST: ContractsController/Delete/5
