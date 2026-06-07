@@ -84,6 +84,8 @@ Systém:
 ### Architektura aplikace
 Aplikace je postavena na MVC architektuře se separací do více vrstev.
 
+Browser → Controller → Service → EF Core → SQL
+
 **Controllers**
 - ClientsController
 - AdvisorsController
@@ -148,10 +150,11 @@ Query objekty zajišťují:
 **Extensions**
 - CsvExtensions → export dat do CSV
 - BirthNumberExtensions → validace a práce s rodnými čísly
+- PluralizationExtensions → skloňování českých slov
 
 **Views**
 
-UI frontend využívající **Razor Views** s použitím knihovny **Bootstrap**.
+UI frontend využívá **Razor Views** s použitím knihovny **Bootstrap**.
 
 ### Směrování a Endpointy (Routes)
 Aplikace obsluhuje CRUD operace pro každou z hlavních entit (`Clients`, `Advisors`, `Contracts`):
