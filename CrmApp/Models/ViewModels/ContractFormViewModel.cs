@@ -23,11 +23,11 @@ public class ContractFormViewModel : IValidatableObject
 
     [Required]
     [Display(Name = "Datum uzavření")]
-    public DateTime SignedDate { get; set; }
+    public DateTime SignedDate { get; set; } = DateTime.Today;
 
     [Required]
     [Display(Name = "Datum platnosti")]
-    public DateTime EffectiveDate { get; set; }
+    public DateTime EffectiveDate { get; set; } = DateTime.Today;
 
     [Display(Name = "Datum ukončení")]
     public DateTime? EndDate { get; set; }
