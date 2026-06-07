@@ -200,6 +200,7 @@ Konfigurace:
 #### Požadavky
 
 - **.NET 10.0 SDK** (nutné pro kompilaci)
+- ** .NET EF Core Tools** (`dotnet tool install --global dotnet-ef`)
 - **SQL Server Express** (lokální databázový server pro uložení dat)
 
 #### Vytvoření databáze
