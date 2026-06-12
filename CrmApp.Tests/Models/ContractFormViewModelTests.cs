@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-using CrmApp.Models;
-using CrmApp.Models.ViewModels;
+using CrmApp.Domain.Models;
+using CrmApp.Web.Models.ViewModels;
 
 namespace CrmApp.Tests.Models;
 

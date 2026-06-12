@@ -1,4 +1,4 @@
-﻿using CrmApp.Extensions;
+﻿using CrmApp.Domain.Extensions;
 
 namespace CrmApp.Tests.Extensions;
 

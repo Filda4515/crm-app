@@ -1,14 +1,14 @@
-﻿using CrmApp.Extensions;
-using CrmApp.Models;
-using CrmApp.Models.Queries;
-using CrmApp.Models.ViewModels;
-using CrmApp.Services;
+﻿using CrmApp.Application.Models.Queries;
+using CrmApp.Application.Services;
+using CrmApp.Domain.Models;
+using CrmApp.Web.Extensions;
+using CrmApp.Web.Models.ViewModels;
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace CrmApp.Controllers;
+namespace CrmApp.Web.Controllers;
 
 [Authorize]
 public class AdvisorsController(IAdvisorService advisorService) : Controller

@@ -1,6 +1,7 @@
-﻿using CrmApp.Models.Queries;
+﻿using CrmApp.Application.Models.Queries;
+using CrmApp.Domain.Models;
 
-namespace CrmApp.Models.ViewModels;
+namespace CrmApp.Web.Models.ViewModels;
 
 public class ClientIndexViewModel
 {

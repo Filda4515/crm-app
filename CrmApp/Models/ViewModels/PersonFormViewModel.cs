@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-using CrmApp.Extensions;
+using CrmApp.Domain.Extensions;
 
-namespace CrmApp.Models.ViewModels;
+namespace CrmApp.Web.Models.ViewModels;
 
 public abstract class PersonFormViewModel : IValidatableObject
 {

@@ -1,4 +1,4 @@
-﻿namespace CrmApp.Models;
+﻿namespace CrmApp.Web.Models;
 
 public class AdminSettings
 {

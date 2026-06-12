@@ -1,8 +1,8 @@
 ﻿using System.Security.Claims;
 
-using CrmApp.Controllers;
-using CrmApp.Models;
-using CrmApp.Models.ViewModels;
+using CrmApp.Web.Controllers;
+using CrmApp.Web.Models;
+using CrmApp.Web.Models.ViewModels;
 
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;

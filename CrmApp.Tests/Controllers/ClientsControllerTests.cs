@@ -1,8 +1,8 @@
-﻿using CrmApp.Controllers;
-using CrmApp.Models;
-using CrmApp.Models.Queries;
-using CrmApp.Models.ViewModels;
-using CrmApp.Services;
+﻿using CrmApp.Application.Models.Queries;
+using CrmApp.Application.Services;
+using CrmApp.Domain.Models;
+using CrmApp.Web.Controllers;
+using CrmApp.Web.Models.ViewModels;
 
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

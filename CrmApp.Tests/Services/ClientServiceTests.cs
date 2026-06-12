@@ -1,7 +1,7 @@
-﻿using CrmApp.Data;
-using CrmApp.Models;
-using CrmApp.Models.Queries;
-using CrmApp.Services;
+﻿using CrmApp.Application.Models.Queries;
+using CrmApp.Application.Services;
+using CrmApp.Domain.Models;
+using CrmApp.Infrastructure.Data;
 
 using Microsoft.EntityFrameworkCore;
 

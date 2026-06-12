@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-using CrmApp.Extensions;
+using CrmApp.Web.Extensions;
 
 namespace CrmApp.Tests.Extensions;
 

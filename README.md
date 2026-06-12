@@ -82,79 +82,36 @@ Systém:
 
 
 ### Architektura aplikace
-Aplikace je postavena na MVC architektuře se separací do více vrstev.
+Aplikace je postavena na MVC vícevrstvé architektuře (Clean Architecture) se striktním oddělení zodpovědností (Separation of Concerns).
 
-Browser → Controller → Service → EF Core → SQL
+Závislosti:
+`Web` ➔ `Application` ➔ `Domain` ⇦ `Infrastructure`
 
-**Controllers**
-- ClientsController
-- AdvisorsController
-- ContractsController
-- AccountController
-- ErrorsController
+### Architektura aplikace
+Aplikace je postavena na MVC vícevrstvé architektuře (Clean Architecture) rozdělené do 4 nezávislých projektů. Toto rozdělení zpřehledňuje kód a odděluje odpovědnosti jednotlivých vrstev.
 
-Controllers zajišťují:
-- HTTP routing
-- validace vstupů (ModelState)
-- delegace logiky do service vrstvy
-- globální error handling
+**1. CrmApp.Domain (Doménová vrstva)**
+Základní entity aplikace. Neobsahuje žádné závislosti na externích knihovnách, databázi ani webovém rozhraní.
+- **Entity:** `Client`, `Advisor`, `Contract`, `Person`
+- **Doménová logika:** Extenze pro výpočet věku z rodného čísla (`BirthNumberExtensions`).
 
+**2. CrmApp.Application (Aplikační vrstva)**
+Obsahuje business logiku (Use Cases). Zná doménovou a infrastrukturní vrstvu.
+- **Services:** `ClientService`, `AdvisorService`, `ContractService` (a jejich rozhraní pro Dependency Injection). Komunikují přímo s databázovým kontextem.
+- **Queries:** Centralizace vyhledávacích a řadících parametrů (`PersonQuery`, `ContractQuery`).
+- Zajišťuje CRUD operace a aplikuje business pravidla.
 
-**Services** (Business vrstva)
-- ClientService
-- AdvisorService
-- ContractService
+**3. CrmApp.Infrastructure (Datová vrstva)**
+Implementuje komunikaci s databází a správu dat.
+- **Entity Framework Core:** `CrmDbContext` a Code-first migrace.
+- **Mapování a Seed dat:** Konfigurace entit, vazeb a výchozích databázových záznamů probíhá centrálně pomocí `OnModelCreating`.
 
-Services zajišťují:
-- CRUD operace
-- implementace business logiky
-- filtrování a řazení dat
-- izolace databázové logiky od controllerů
-- testovatelnost backendu
-
-**Models**
-- Client
-- Advisor
-- Contract
-- Person
-
-**ViewModels (`Models/ViewModels`)**
-- ClientIndexViewModel
-- ContractIndexViewModel
-- PersonFormViewModel
-- ContractFormViewModel
-- LoginViewModel
-
-ViewModels zajišťují:
-- oddělení databázových entit od UI
-- overposting prevence
-- bezpečný datový přenos mezi vrstvami
-
-**Query objekty (`Models/Queries`)**
-- PersonQuery
-- ContractQuery
-
-Query objekty zajišťují:
-- centralizace filtrů
-- řízení řazení
-- enkapsulace vyhledávacích parametrů
-- čisté a explicitní service API bez nutnosti předávání velkého množství parametrů
-
-**Datová vrstva**
-- Entity Framework Core
-- SQL Server Express
-- Code-first migrace
-- seed dat pro testování
-- kolace Latin1_General_CI_AI (case-insensitive + diacritics-insensitive vyhledávání)
-
-**Extensions**
-- CsvExtensions → export dat do CSV
-- BirthNumberExtensions → validace a práce s rodnými čísly
-- PluralizationExtensions → skloňování českých slov
-
-**Views**
-
-UI frontend využívá **Razor Views** s použitím knihovny **Bootstrap**.
+**4. CrmApp (Prezentační vrstva / Web)**
+Vstupní bod aplikace (ASP.NET Core MVC). Komunikuje s aplikační vrstvou pro zpracování požadavků a s infrastrukturou pro inicializaci aplikace.
+- **Controllers:** Zajišťují HTTP routing, delegaci požadavků do Services a error handling.
+- **ViewModels:** (`ContractFormViewModel`, atd.) Oddělení datových entit od UI, prevence overpostingu a řízení validací.
+- **Views:** Uživatelské rozhraní postavené na Razor Views a Bootstrap 5.
+- **Prezentační Extenze:** Generování CSV (`CsvExtensions`) a skloňování UI textů (`PluralizationExtensions`).
 
 ### Směrování a Endpointy (Routes)
 Aplikace obsluhuje CRUD operace pro každou z hlavních entit (`Clients`, `Advisors`, `Contracts`):
@@ -200,23 +157,21 @@ Konfigurace:
 #### Požadavky
 
 - **.NET 10.0 SDK** (nutné pro kompilaci)
-- ** .NET EF Core Tools** (`dotnet tool install --global dotnet-ef`)
+- **.NET EF Core Tools** (`dotnet tool install --global dotnet-ef`)
 - **SQL Server Express** (lokální databázový server pro uložení dat)
 
 #### Vytvoření databáze
 
-Aby aplikace fungovala, musí mít připravenou strukturu databáze. Otevřete terminál, přejděte do složky samotného projektu (`CrmApp`) a spusťte migraci:
+Aby aplikace fungovala, musí mít připravenou strukturu databáze. Otevřete terminál v kořenové složce řešení (`CrmApp`) a spusťte migraci:
 
 ```bash
-cd CrmApp
-dotnet ef database update
+dotnet ef database update --project CrmApp.Infrastructure --startup-project CrmApp
 ```
 
 #### Spuštění
 
 ```bash
-cd CrmApp
-dotnet run
+dotnet run --project CrmApp
 ```
 
 #### Spuštění testů

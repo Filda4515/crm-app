@@ -1,14 +1,14 @@
 ﻿using System.Security.Claims;
 
-using CrmApp.Models;
-using CrmApp.Models.ViewModels;
+using CrmApp.Web.Models;
+using CrmApp.Web.Models.ViewModels;
 
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 
-namespace CrmApp.Controllers;
+namespace CrmApp.Web.Controllers;
 
 public class AccountController(IOptions<AdminSettings> adminSettingsOptions) : Controller
 {

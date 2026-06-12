@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-using CrmApp.Models.ViewModels;
+using CrmApp.Web.Models.ViewModels;
 
 namespace CrmApp.Tests.Models;
 

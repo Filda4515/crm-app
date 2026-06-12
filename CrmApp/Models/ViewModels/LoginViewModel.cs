@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace CrmApp.Models.ViewModels;
+namespace CrmApp.Web.Models.ViewModels;
 
 public class LoginViewModel
 {

@@ -1,4 +1,7 @@
 <Solution>
+  <Project Path="CrmApp.Application/CrmApp.Application.csproj" Id="189c35fe-8537-40cc-8666-e96c08e8d0f0" />
+  <Project Path="CrmApp.Domain/CrmApp.Domain.csproj" Id="a08f7b9b-777e-4b5b-8cb5-ed460ee1bb52" />
+  <Project Path="CrmApp.Infrastructure/CrmApp.Infrastructure.csproj" Id="a4aa2888-66d0-4c5d-82a2-4a7c27526afa" />
   <Project Path="CrmApp.Tests/CrmApp.Tests.csproj" />
-  <Project Path="CrmApp/CrmApp.csproj" />
+  <Project Path="CrmApp/CrmApp.Web.csproj" />
 </Solution>

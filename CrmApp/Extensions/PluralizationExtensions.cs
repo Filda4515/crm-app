@@ -1,4 +1,4 @@
-﻿namespace CrmApp.Extensions;
+﻿namespace CrmApp.Web.Extensions;
 
 public static class PluralizationExtensions
 {

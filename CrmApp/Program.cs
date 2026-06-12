@@ -1,6 +1,6 @@
-using CrmApp.Data;
-using CrmApp.Models;
-using CrmApp.Services;
+using CrmApp.Application.Services;
+using CrmApp.Infrastructure.Data;
+using CrmApp.Web.Models;
 
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;

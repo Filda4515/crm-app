@@ -23,7 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CrmApp\CrmApp.csproj" />
+    <ProjectReference Include="..\CrmApp\CrmApp.Web.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,6 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace CrmApp.Models.ViewModels;
+using CrmApp.Domain.Models;
+
+namespace CrmApp.Web.Models.ViewModels;
 
 public class ContractFormViewModel : IValidatableObject
 {

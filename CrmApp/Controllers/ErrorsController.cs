@@ -1,10 +1,10 @@
 ﻿using System.Diagnostics;
 
-using CrmApp.Models.ViewModels;
+using CrmApp.Web.Models.ViewModels;
 
 using Microsoft.AspNetCore.Mvc;
 
-namespace CrmApp.Controllers;
+namespace CrmApp.Web.Controllers;
 
 public class ErrorsController : Controller
 {
