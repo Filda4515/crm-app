@@ -18,7 +18,7 @@ namespace CrmApp.Infrastructure.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .UseCollation("Latin1_General_CI_AI")
-                .HasAnnotation("ProductVersion", "10.0.8")
+                .HasAnnotation("ProductVersion", "10.0.9")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -35,7 +35,7 @@ namespace CrmApp.Infrastructure.Migrations
 
                     b.HasIndex("ParticipatedContractsId");
 
-                    b.ToTable("AdvisorContract");
+                    b.ToTable("AdvisorContract", (string)null);
 
                     b.HasData(
                         new
@@ -96,7 +96,7 @@ namespace CrmApp.Infrastructure.Migrations
                     b.HasIndex("BirthNumber")
                         .IsUnique();
 
-                    b.ToTable("Advisors");
+                    b.ToTable("Advisors", (string)null);
 
                     b.HasData(
                         new
@@ -173,7 +173,7 @@ namespace CrmApp.Infrastructure.Migrations
                     b.HasIndex("BirthNumber")
                         .IsUnique();
 
-                    b.ToTable("Clients");
+                    b.ToTable("Clients", (string)null);
 
                     b.HasData(
                         new
@@ -247,7 +247,7 @@ namespace CrmApp.Infrastructure.Migrations
                     b.HasIndex("RegistrationNumber")
                         .IsUnique();
 
-                    b.ToTable("Contracts");
+                    b.ToTable("Contracts", (string)null);
 
                     b.HasData(
                         new
