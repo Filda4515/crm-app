@@ -1,27 +1,19 @@
-﻿using CrmApp.Application.Models.Queries;
+﻿using CrmApp.Application.Interfaces;
+using CrmApp.Application.Models.Queries;
 using CrmApp.Application.Services;
 using CrmApp.Domain.Models;
-using CrmApp.Infrastructure.Data;
 
-using Microsoft.EntityFrameworkCore;
+using Moq;
 
 namespace CrmApp.Tests.Services;
 
 public class AdvisorServiceTests
 {
-    private static CancellationToken CT => TestContext.Current.CancellationToken;
-
-    private static CrmDbContext GetInMemoryDbContext()
+    private static (AdvisorService Service, Mock<IAdvisorRepository> MockRepo) CreateService()
     {
-        var options = new DbContextOptionsBuilder<CrmDbContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
-        return new CrmDbContext(options);
-    }
-
-    private static AdvisorService CreateService(CrmDbContext context)
-    {
-        return new AdvisorService(context);
+        var mockRepo = new Mock<IAdvisorRepository>();
+        var service = new AdvisorService(mockRepo.Object);
+        return (service, mockRepo);
     }
 
     private static List<Advisor> GetSampleAdvisors() =>
@@ -33,124 +25,29 @@ public class AdvisorServiceTests
     ];
 
     [Fact]
-    public async Task GetAllAdvisors_ShouldReturnAll_WhenQueryIsNull()
+    public async Task GetAllAdvisors_ShouldPassQueryToRepository_WhenCalled()
     {
         // Arrange
-        using var context = GetInMemoryDbContext();
-        context.Advisors.AddRange(GetSampleAdvisors());
-        await context.SaveChangesAsync(CT);
-        var service = CreateService(context);
-
-        // Act
-        var result = await service.GetAllAdvisors(null);
-
-        // Assert
-        Assert.Equal(4, result.Count());
-    }
-
-    [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    [InlineData("   ")]
-    public async Task GetAllAdvisors_ShouldReturnAll_WhenSearchIsNullOrWhitespace(string? search)
-    {
-        // Arrange
-        using var context = GetInMemoryDbContext();
-        context.Advisors.AddRange(GetSampleAdvisors());
-        await context.SaveChangesAsync(CT);
-        var service = CreateService(context);
-        var query = new PersonQuery { Search = search };
+        var (service, mockRepo) = CreateService();
+        var query = new PersonQuery { Search = "Petr" };
+        var expectedAdvisors = GetSampleAdvisors();
+        mockRepo.Setup(r => r.GetAllAsync(query)).ReturnsAsync(expectedAdvisors);
 
         // Act
         var result = await service.GetAllAdvisors(query);
 
         // Assert
         Assert.Equal(4, result.Count());
+        mockRepo.Verify(r => r.GetAllAsync(query), Times.Once);
     }
 
     [Fact]
-    public async Task GetAllAdvisors_ShouldReturnMatching_WhenSearchMatchesLastName()
+    public async Task GetAdvisorById_ShouldReturnAdvisor_WhenExists()
     {
         // Arrange
-        using var context = GetInMemoryDbContext();
-        context.Advisors.AddRange(GetSampleAdvisors());
-        await context.SaveChangesAsync(CT);
-        var service = CreateService(context);
-        var query = new PersonQuery { Search = "Obojí" };
-
-        // Act
-        var result = await service.GetAllAdvisors(query);
-
-        // Assert
-        Assert.Single(result);
-        Assert.Equal("Obojí", result.First().LastName);
-    }
-
-    [Theory]
-    [InlineData("firstName", "Karel")]
-    [InlineData("firstNameDesc", "Žaneta")]
-    public async Task GetAllAdvisors_ShouldOrderByFirstName_WhenSortByIsFirstName(string sortOrder, string expectedFirstFirstName)
-    {
-        // Arrange
-        using var context = GetInMemoryDbContext();
-        context.Advisors.AddRange(GetSampleAdvisors());
-        await context.SaveChangesAsync(CT);
-        var service = CreateService(context);
-        var query = new PersonQuery { SortBy = sortOrder };
-
-        // Act
-        var result = (await service.GetAllAdvisors(query)).ToList();
-
-        // Assert
-        Assert.Equal(expectedFirstFirstName, result[0].FirstName);
-    }
-
-    [Theory]
-    [InlineData("lastNameDesc", "Účastník")]
-    [InlineData("invalid", "Bývalá-Správcová")]
-    public async Task GetAllAdvisors_ShouldOrderByName_WhenSortByIsLastName(string sortOrder, string expectedFirstLastName)
-    {
-        // Arrange
-        using var context = GetInMemoryDbContext();
-        context.Advisors.AddRange(GetSampleAdvisors());
-        await context.SaveChangesAsync(CT);
-        var service = CreateService(context);
-        var query = new PersonQuery { SortBy = sortOrder };
-
-        // Act
-        var result = (await service.GetAllAdvisors(query)).ToList();
-
-        // Assert
-        Assert.Equal(expectedFirstLastName, result[0].LastName);
-    }
-
-    [Theory]
-    [InlineData("birthNumber", "850202/5678")]
-    [InlineData("birthNumberDesc", "980808/8888")]
-    public async Task GetAllAdvisors_ShouldOrderByBirthNumber_WhenSortByIsBirthNumber(string sortOrder, string expectedFirstBirthNumber)
-    {
-        // Arrange
-        using var context = GetInMemoryDbContext();
-        context.Advisors.AddRange(GetSampleAdvisors());
-        await context.SaveChangesAsync(CT);
-        var service = CreateService(context);
-        var query = new PersonQuery { SortBy = sortOrder };
-
-        // Act
-        var result = (await service.GetAllAdvisors(query)).ToList();
-
-        // Assert
-        Assert.Equal(expectedFirstBirthNumber, result[0].BirthNumber);
-    }
-
-    [Fact]
-    public async Task GetAdvisorById_ShouldReturnAdvisor_WhenAdvisorExists()
-    {
-        // Arrange
-        using var context = GetInMemoryDbContext();
-        context.Advisors.AddRange(GetSampleAdvisors());
-        await context.SaveChangesAsync(CT);
-        var service = CreateService(context);
+        var (service, mockRepo) = CreateService();
+        var expectedAdvisor = GetSampleAdvisors().First();
+        mockRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(expectedAdvisor);
 
         // Act
         var result = await service.GetAdvisorById(1);
@@ -161,13 +58,11 @@ public class AdvisorServiceTests
     }
 
     [Fact]
-    public async Task GetAdvisorById_ShouldReturnNull_WhenAdvisorDoesNotExist()
+    public async Task GetAdvisorById_ShouldReturnNull_WhenNotExists()
     {
         // Arrange
-        using var context = GetInMemoryDbContext();
-        context.Advisors.AddRange(GetSampleAdvisors());
-        await context.SaveChangesAsync(CT);
-        var service = CreateService(context);
+        var (service, mockRepo) = CreateService();
+        mockRepo.Setup(r => r.GetByIdAsync(999)).ReturnsAsync((Advisor?)null);
 
         // Act
         var result = await service.GetAdvisorById(999);
@@ -177,113 +72,103 @@ public class AdvisorServiceTests
     }
 
     [Fact]
-    public async Task CreateAdvisor_ShouldAddAdvisorToDatabase_WhenCalled()
+    public async Task CreateAdvisor_ShouldAddAndSave_WhenCalled()
     {
         // Arrange
-        using var context = GetInMemoryDbContext();
-        var service = CreateService(context);
-        var newAdvisor = new Advisor { Id = 1, FirstName = "Nový", LastName = "Poradce", BirthNumber = "000000/0000" };
+        var (service, mockRepo) = CreateService();
+        var newAdvisor = new Advisor { Id = 5, FirstName = "Nový", LastName = "Poradce", BirthNumber = "000000/0000" };
 
         // Act
         await service.CreateAdvisor(newAdvisor);
 
         // Assert
-        Assert.Equal(1, await context.Advisors.CountAsync(CT));
-        var dbAdvisor = await context.Advisors.FirstAsync(CT);
-        Assert.Equal("Nový", dbAdvisor.FirstName);
+        mockRepo.Verify(r => r.AddAsync(newAdvisor), Times.Once);
+        mockRepo.Verify(r => r.SaveChangesAsync(), Times.Once);
     }
 
     [Fact]
-    public async Task UpdateAdvisor_ShouldModifyDatabase_WhenAdvisorExists()
+    public async Task UpdateAdvisor_ShouldUpdateAndSave_WhenExists()
     {
         // Arrange
-        using var context = GetInMemoryDbContext();
-        var advisor = new Advisor { Id = 1, FirstName = "Starý", LastName = "Poradce", BirthNumber = "000000/0000" };
-        context.Advisors.Add(advisor);
-        await context.SaveChangesAsync(CT);
+        var (service, mockRepo) = CreateService();
+        var existingAdvisor = GetSampleAdvisors().First(a => a.Id == 1);
+        var updatedAdvisor = new Advisor { Id = 1, FirstName = "Změněný", LastName = "Obojí", BirthNumber = "850202/5678" };
 
-        var service = CreateService(context);
-        var updatedAdvisor = new Advisor { Id = 1, FirstName = "Změněný", LastName = "Poradce", BirthNumber = "000000/0000" };
+        mockRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(existingAdvisor);
 
         // Act
         await service.UpdateAdvisor(updatedAdvisor);
 
         // Assert
-        var dbAdvisor = await context.Advisors.FirstAsync(CT);
-        Assert.Equal("Změněný", dbAdvisor.FirstName);
+        mockRepo.Verify(r => r.Update(updatedAdvisor, existingAdvisor), Times.Once);
+        mockRepo.Verify(r => r.SaveChangesAsync(), Times.Once);
     }
 
     [Fact]
-    public async Task UpdateAdvisor_ShouldThrowKeyNotFoundException_WhenAdvisorDoesNotExist()
+    public async Task UpdateAdvisor_ShouldThrowKeyNotFoundException_WhenNotExists()
     {
         // Arrange
-        using var context = GetInMemoryDbContext();
-        var service = CreateService(context);
+        var (service, mockRepo) = CreateService();
         var nonExistentAdvisor = new Advisor { Id = 999, FirstName = "Duch", LastName = "Poradce", BirthNumber = "000000/0000" };
+        mockRepo.Setup(r => r.GetByIdAsync(999)).ReturnsAsync((Advisor?)null);
 
         // Act & Assert
         await Assert.ThrowsAsync<KeyNotFoundException>(() => service.UpdateAdvisor(nonExistentAdvisor));
+        mockRepo.Verify(r => r.Update(It.IsAny<Advisor>(), It.IsAny<Advisor>()), Times.Never);
     }
 
     [Fact]
-    public async Task DeleteAdvisor_ShouldRemoveAdvisor_WhenAdvisorExistsAndHasNoContracts()
+    public async Task DeleteAdvisor_ShouldDeleteAndSave_WhenExistsAndNoContractsDeleted()
     {
         // Arrange
-        using var context = GetInMemoryDbContext();
-        context.Advisors.Add(new Advisor { Id = 1, FirstName = "Petr", LastName = "Obojí", BirthNumber = "850202/5678" });
-        await context.SaveChangesAsync(CT);
-        var service = CreateService(context);
+        var (service, mockRepo) = CreateService();
+        var advisor = GetSampleAdvisors().First(a => a.Id == 1);
+        mockRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(advisor);
 
         // Act
         await service.DeleteAdvisor(1, false);
 
         // Assert
-        Assert.Empty(await context.Advisors.ToListAsync(CT));
+        mockRepo.Verify(r => r.DeleteRange(It.IsAny<IEnumerable<Contract>>()), Times.Never);
+        mockRepo.Verify(r => r.Delete(advisor), Times.Once);
+        mockRepo.Verify(r => r.SaveChangesAsync(), Times.Once);
     }
 
     [Fact]
-    public async Task DeleteAdvisor_ShouldNotThrow_WhenAdvisorDoesNotExist()
+    public async Task DeleteAdvisor_ShouldNotDelete_WhenNotExists()
     {
         // Arrange
-        using var context = GetInMemoryDbContext();
-        var service = CreateService(context);
+        var (service, mockRepo) = CreateService();
+        mockRepo.Setup(r => r.GetByIdAsync(999)).ReturnsAsync((Advisor?)null);
 
         // Act
-        await service.DeleteAdvisor(999, false);
+        await service.DeleteAdvisor(999, true);
 
         // Assert
-        Assert.Empty(await context.Advisors.ToListAsync(CT));
+        mockRepo.Verify(r => r.Delete(It.IsAny<Advisor>()), Times.Never);
+        mockRepo.Verify(r => r.SaveChangesAsync(), Times.Never);
     }
 
     [Fact]
-    public async Task DeleteAdvisor_ShouldRemoveContracts_WhenDeleteContractsIsTrueAndHasContracts()
+    public async Task DeleteAdvisor_ShouldDeleteContractsAndAdvisor_WhenDeleteContractsIsTrueAndHasContracts()
     {
         // Arrange
-        using var context = GetInMemoryDbContext();
-        var advisor = new Advisor { Id = 1, FirstName = "Petr", LastName = "Obojí", BirthNumber = "850202/5678" };
-        var contract = new Contract
+        var (service, mockRepo) = CreateService();
+        var advisor = GetSampleAdvisors().First(a => a.Id == 1);
+        var contracts = new List<Contract>
         {
-            Id = 1,
-            RegistrationNumber = "001",
-            Institution = "Banka",
-            ClientId = 1,
-            ManagerId = 1,
-            Manager = advisor,
-            SignedDate = DateTime.Now,
-            EffectiveDate = DateTime.Now
+            new() { Id = 1, RegistrationNumber = "001", Institution = "Banka", ClientId = 1, ManagerId = 1 }
         };
+        advisor.ManagedContracts = contracts;
 
-        context.Advisors.Add(advisor);
-        context.Contracts.Add(contract);
-        await context.SaveChangesAsync(CT);
-
-        var service = CreateService(context);
+        mockRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(advisor);
 
         // Act
         await service.DeleteAdvisor(1, true);
 
         // Assert
-        Assert.Empty(await context.Advisors.ToListAsync(CT));
-        Assert.Empty(await context.Contracts.ToListAsync(CT));
+        mockRepo.Verify(r => r.DeleteRange(contracts), Times.Once);
+        mockRepo.Verify(r => r.Delete(advisor), Times.Once);
+        mockRepo.Verify(r => r.SaveChangesAsync(), Times.Once);
     }
 }

@@ -82,32 +82,30 @@ Systém:
 
 
 ### Architektura aplikace
-Aplikace je postavena na MVC vícevrstvé architektuře (Clean Architecture) se striktním oddělení zodpovědností (Separation of Concerns).
+Aplikace je postavena na MVC vícevrstvé architektuře (Clean Architecture) se striktním oddělením zodpovědností (Separation of Concerns). Rozdělení do 4 nezávislých projektů zpřehledňuje kód.
 
 Závislosti:
-`Web` ➔ `Application` ➔ `Domain` ⇦ `Infrastructure`
-
-### Architektura aplikace
-Aplikace je postavena na MVC vícevrstvé architektuře (Clean Architecture) rozdělené do 4 nezávislých projektů. Toto rozdělení zpřehledňuje kód a odděluje odpovědnosti jednotlivých vrstev.
+`Web` → `Application` → `Domain` ← `Infrastructure`
 
 **1. CrmApp.Domain (Doménová vrstva)**
-Základní entity aplikace. Neobsahuje žádné závislosti na externích knihovnách, databázi ani webovém rozhraní.
+Základní entity aplikace. Neobsahuje vůbec žádné závislosti na externích knihovnách, databázi ani webovém rozhraní.
 - **Entity:** `Client`, `Advisor`, `Contract`, `Person`
 - **Doménová logika:** Extenze pro výpočet věku z rodného čísla (`BirthNumberExtensions`).
 
 **2. CrmApp.Application (Aplikační vrstva)**
-Obsahuje business logiku (Use Cases). Zná doménovou a infrastrukturní vrstvu.
-- **Services:** `ClientService`, `AdvisorService`, `ContractService` (a jejich rozhraní pro Dependency Injection). Komunikují přímo s databázovým kontextem.
+Obsahuje čistou business logiku (Use Cases). Zná pouze doménovou vrstvu.
+- **Services:** `ClientService`, `AdvisorService`, `ContractService`. Zajišťují CRUD operace a aplikují business pravidla.
+- **Interfaces:** Definuje rozhraní pro repozitáře (Repository Pattern), díky čemuž je kompletně odstřižena od přímé komunikace s databází.
 - **Queries:** Centralizace vyhledávacích a řadících parametrů (`PersonQuery`, `ContractQuery`).
-- Zajišťuje CRUD operace a aplikuje business pravidla.
 
 **3. CrmApp.Infrastructure (Datová vrstva)**
-Implementuje komunikaci s databází a správu dat.
+Implementuje komunikaci s databází a plní požadavky aplikační vrstvy.
+- **Repositories:** Obsahuje implementaci repozitářů pro přístup k datům.
 - **Entity Framework Core:** `CrmDbContext` a Code-first migrace.
-- **Mapování a Seed dat:** Konfigurace entit, vazeb a výchozích databázových záznamů probíhá centrálně pomocí `OnModelCreating`.
+- **Mapování a Seed dat:** Konfigurace entit, vazeb a výchozích databázových záznamů je elegantně oddělena do samostatných konfiguračních tříd (`IEntityTypeConfiguration`).
 
 **4. CrmApp (Prezentační vrstva / Web)**
-Vstupní bod aplikace (ASP.NET Core MVC). Komunikuje s aplikační vrstvou pro zpracování požadavků a s infrastrukturou pro inicializaci aplikace.
+Vstupní bod aplikace (ASP.NET Core MVC). Zajišťuje propojování vrstev (Dependency Injection) a komunikaci s uživatelem.
 - **Controllers:** Zajišťují HTTP routing, delegaci požadavků do Services a error handling.
 - **ViewModels:** (`ContractFormViewModel`, atd.) Oddělení datových entit od UI, prevence overpostingu a řízení validací.
 - **Views:** Uživatelské rozhraní postavené na Razor Views a Bootstrap 5.

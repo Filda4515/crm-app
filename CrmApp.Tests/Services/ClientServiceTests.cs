@@ -1,27 +1,19 @@
-﻿using CrmApp.Application.Models.Queries;
+﻿using CrmApp.Application.Interfaces;
+using CrmApp.Application.Models.Queries;
 using CrmApp.Application.Services;
 using CrmApp.Domain.Models;
-using CrmApp.Infrastructure.Data;
 
-using Microsoft.EntityFrameworkCore;
+using Moq;
 
 namespace CrmApp.Tests.Services;
 
 public class ClientServiceTests
 {
-    private static CancellationToken CT => TestContext.Current.CancellationToken;
-
-    private static CrmDbContext GetInMemoryDbContext()
+    private static (ClientService Service, Mock<IClientRepository> MockRepo) CreateService()
     {
-        var options = new DbContextOptionsBuilder<CrmDbContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
-        return new CrmDbContext(options);
-    }
-
-    private static ClientService CreateService(CrmDbContext context)
-    {
-        return new ClientService(context);
+        var mockRepo = new Mock<IClientRepository>();
+        var service = new ClientService(mockRepo.Object);
+        return (service, mockRepo);
     }
 
     private static List<Client> GetSampleClients() =>
@@ -32,124 +24,29 @@ public class ClientServiceTests
     ];
 
     [Fact]
-    public async Task GetAllClients_ShouldReturnAll_WhenQueryIsNull()
+    public async Task GetAllClients_ShouldPassQueryToRepository_WhenCalled()
     {
         // Arrange
-        using var context = GetInMemoryDbContext();
-        context.Clients.AddRange(GetSampleClients());
-        await context.SaveChangesAsync(CT);
-        var service = CreateService(context);
-
-        // Act
-        var result = await service.GetAllClients(null);
-
-        // Assert
-        Assert.Equal(3, result.Count());
-    }
-
-    [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    [InlineData("   ")]
-    public async Task GetAllClients_ShouldReturnAll_WhenSearchIsNullOrWhitespace(string? search)
-    {
-        // Arrange
-        using var context = GetInMemoryDbContext();
-        context.Clients.AddRange(GetSampleClients());
-        await context.SaveChangesAsync(CT);
-        var service = CreateService(context);
-        var query = new PersonQuery { Search = search };
+        var (service, mockRepo) = CreateService();
+        var query = new PersonQuery { Search = "Jan" };
+        var expectedClients = GetSampleClients();
+        mockRepo.Setup(r => r.GetAllAsync(query)).ReturnsAsync(expectedClients);
 
         // Act
         var result = await service.GetAllClients(query);
 
         // Assert
         Assert.Equal(3, result.Count());
+        mockRepo.Verify(r => r.GetAllAsync(query), Times.Once);
     }
 
     [Fact]
-    public async Task GetAllClients_ShouldReturnMatching_WhenSearchMatchesLastNameCase()
+    public async Task GetClientById_ShouldReturnClient_WhenExists()
     {
         // Arrange
-        using var context = GetInMemoryDbContext();
-        context.Clients.AddRange(GetSampleClients());
-        await context.SaveChangesAsync(CT);
-        var service = CreateService(context);
-        var query = new PersonQuery { Search = "Prázdná" };
-
-        // Act
-        var result = await service.GetAllClients(query);
-
-        // Assert
-        Assert.Single(result);
-        Assert.Equal("Prázdná", result.First().LastName);
-    }
-
-    [Theory]
-    [InlineData("firstName", "Alena")]
-    [InlineData("firstNameDesc", "Štěpán")]
-    public async Task GetAllClients_ShouldOrderByFirstName_WhenSortByIsFirstName(string sortOrder, string expectedFirstFirstName)
-    {
-        // Arrange
-        using var context = GetInMemoryDbContext();
-        context.Clients.AddRange(GetSampleClients());
-        await context.SaveChangesAsync(CT);
-        var service = CreateService(context);
-        var query = new PersonQuery { SortBy = sortOrder };
-
-        // Act
-        var result = (await service.GetAllClients(query)).ToList();
-
-        // Assert
-        Assert.Equal(expectedFirstFirstName, result[0].FirstName);
-    }
-
-    [Theory]
-    [InlineData("lastNameDesc", "Prázdná")]
-    [InlineData("invalid_sort", "Běžný")]
-    public async Task GetAllClients_ShouldOrderByLastName_WhenSortByIsLastName(string sortOrder, string expectedFirstLastName)
-    {
-        // Arrange
-        using var context = GetInMemoryDbContext();
-        context.Clients.AddRange(GetSampleClients());
-        await context.SaveChangesAsync(CT);
-        var service = CreateService(context);
-        var query = new PersonQuery { SortBy = sortOrder };
-
-        // Act
-        var result = (await service.GetAllClients(query)).ToList();
-
-        // Assert
-        Assert.Equal(expectedFirstLastName, result[0].LastName);
-    }
-
-    [Theory]
-    [InlineData("birthNumber", "800505/1111")]
-    [InlineData("birthNumberDesc", "960101/1234")]
-    public async Task GetAllClients_ShouldOrderByBirthNumber_WhenSortByIsBirthNumber(string sortOrder, string expectedFirstBirthNumber)
-    {
-        // Arrange
-        using var context = GetInMemoryDbContext();
-        context.Clients.AddRange(GetSampleClients());
-        await context.SaveChangesAsync(CT);
-        var service = CreateService(context);
-        var query = new PersonQuery { SortBy = sortOrder };
-
-        // Act
-        var result = (await service.GetAllClients(query)).ToList();
-
-        // Assert
-        Assert.Equal(expectedFirstBirthNumber, result[0].BirthNumber);
-    }
-
-    [Fact]
-    public async Task GetClientById_ShouldReturnClient_WhenClientExists()
-    {
-        // Arrange
-        using var context = GetInMemoryDbContext();
-        context.Clients.AddRange(GetSampleClients());
-        await context.SaveChangesAsync(CT);
-        var service = CreateService(context);
+        var (service, mockRepo) = CreateService();
+        var expectedClient = GetSampleClients().First();
+        mockRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(expectedClient);
 
         // Act
         var result = await service.GetClientById(1);
@@ -160,13 +57,11 @@ public class ClientServiceTests
     }
 
     [Fact]
-    public async Task GetClientById_ShouldReturnNull_WhenClientDoesNotExist()
+    public async Task GetClientById_ShouldReturnNull_WhenNotExists()
     {
         // Arrange
-        using var context = GetInMemoryDbContext();
-        context.Clients.AddRange(GetSampleClients());
-        await context.SaveChangesAsync(CT);
-        var service = CreateService(context);
+        var (service, mockRepo) = CreateService();
+        mockRepo.Setup(r => r.GetByIdAsync(999)).ReturnsAsync((Client?)null);
 
         // Act
         var result = await service.GetClientById(999);
@@ -176,113 +71,103 @@ public class ClientServiceTests
     }
 
     [Fact]
-    public async Task CreateClient_ShouldAddClientToDatabase_WhenCalled()
+    public async Task CreateClient_ShouldAddAndSave_WhenCalled()
     {
         // Arrange
-        using var context = GetInMemoryDbContext();
-        var service = CreateService(context);
-        var newClient = new Client { Id = 1, FirstName = "Nový", LastName = "Klient", BirthNumber = "000000/0000" };
+        var (service, mockRepo) = CreateService();
+        var newClient = new Client { Id = 4, FirstName = "Nový", LastName = "Klient", BirthNumber = "000000/0000" };
 
         // Act
         await service.CreateClient(newClient);
 
         // Assert
-        Assert.Equal(1, await context.Clients.CountAsync(CT));
-        var dbClient = await context.Clients.FirstAsync(CT);
-        Assert.Equal("Nový", dbClient.FirstName);
+        mockRepo.Verify(r => r.AddAsync(newClient), Times.Once);
+        mockRepo.Verify(r => r.SaveChangesAsync(), Times.Once);
     }
 
     [Fact]
-    public async Task UpdateClient_ShouldModifyDatabase_WhenClientExists()
+    public async Task UpdateClient_ShouldUpdateAndSave_WhenExists()
     {
         // Arrange
-        using var context = GetInMemoryDbContext();
-        var client = new Client { Id = 1, FirstName = "Starý", LastName = "Klient", BirthNumber = "000000/0000" };
-        context.Clients.Add(client);
-        await context.SaveChangesAsync(CT);
+        var (service, mockRepo) = CreateService();
+        var existingClient = GetSampleClients().First(c => c.Id == 1);
+        var updatedClient = new Client { Id = 1, FirstName = "Změněný", LastName = "Běžný", BirthNumber = "960101/1234" };
 
-        var service = CreateService(context);
-        var updatedClient = new Client { Id = 1, FirstName = "Změněný", LastName = "Klient", BirthNumber = "000000/0000" };
+        mockRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(existingClient);
 
         // Act
         await service.UpdateClient(updatedClient);
 
         // Assert
-        var dbClient = await context.Clients.FirstAsync(CT);
-        Assert.Equal("Změněný", dbClient.FirstName);
+        mockRepo.Verify(r => r.Update(updatedClient, existingClient), Times.Once);
+        mockRepo.Verify(r => r.SaveChangesAsync(), Times.Once);
     }
 
     [Fact]
-    public async Task UpdateClient_ShouldThrowKeyNotFoundException_WhenClientDoesNotExist()
+    public async Task UpdateClient_ShouldThrowKeyNotFoundException_WhenNotExists()
     {
         // Arrange
-        using var context = GetInMemoryDbContext();
-        var service = CreateService(context);
+        var (service, mockRepo) = CreateService();
         var nonExistentClient = new Client { Id = 999, FirstName = "Duch", LastName = "Klient", BirthNumber = "000000/0000" };
+        mockRepo.Setup(r => r.GetByIdAsync(999)).ReturnsAsync((Client?)null);
 
         // Act & Assert
         await Assert.ThrowsAsync<KeyNotFoundException>(() => service.UpdateClient(nonExistentClient));
+        mockRepo.Verify(r => r.Update(It.IsAny<Client>(), It.IsAny<Client>()), Times.Never);
     }
 
     [Fact]
-    public async Task DeleteClient_ShouldRemoveClient_WhenClientExistsAndHasNoContracts()
+    public async Task DeleteClient_ShouldDeleteAndSave_WhenExistsAndNoContractsDeleted()
     {
         // Arrange
-        using var context = GetInMemoryDbContext();
-        context.Clients.Add(new Client { Id = 1, FirstName = "Jan", LastName = "Běžný", BirthNumber = "960101/1234" });
-        await context.SaveChangesAsync(CT);
-        var service = CreateService(context);
+        var (service, mockRepo) = CreateService();
+        var client = GetSampleClients().First(c => c.Id == 1);
+        mockRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(client);
 
         // Act
         await service.DeleteClient(1, false);
 
         // Assert
-        Assert.Empty(await context.Clients.ToListAsync(CT));
+        mockRepo.Verify(r => r.DeleteRange(It.IsAny<IEnumerable<Contract>>()), Times.Never);
+        mockRepo.Verify(r => r.Delete(client), Times.Once);
+        mockRepo.Verify(r => r.SaveChangesAsync(), Times.Once);
     }
 
     [Fact]
-    public async Task DeleteClient_ShouldNotThrow_WhenClientDoesNotExist()
+    public async Task DeleteClient_ShouldNotDelete_WhenNotExists()
     {
         // Arrange
-        using var context = GetInMemoryDbContext();
-        var service = CreateService(context);
+        var (service, mockRepo) = CreateService();
+        mockRepo.Setup(r => r.GetByIdAsync(999)).ReturnsAsync((Client?)null);
 
         // Act
-        await service.DeleteClient(999, false);
+        await service.DeleteClient(999, true);
 
         // Assert
-        Assert.Empty(await context.Clients.ToListAsync(CT));
+        mockRepo.Verify(r => r.Delete(It.IsAny<Client>()), Times.Never);
+        mockRepo.Verify(r => r.SaveChangesAsync(), Times.Never);
     }
 
     [Fact]
-    public async Task DeleteClient_ShouldRemoveContracts_WhenDeleteContractsIsTrueAndHasContracts()
+    public async Task DeleteClient_ShouldDeleteContractsAndClient_WhenDeleteContractsIsTrueAndHasContracts()
     {
         // Arrange
-        using var context = GetInMemoryDbContext();
-        var client = new Client { Id = 1, FirstName = "Jan", LastName = "Běžný", BirthNumber = "960101/1234" };
-        var contract = new Contract
+        var (service, mockRepo) = CreateService();
+        var client = GetSampleClients().First(c => c.Id == 1);
+        var contracts = new List<Contract>
         {
-            Id = 1,
-            RegistrationNumber = "001",
-            Institution = "Banka",
-            ClientId = 1,
-            Client = client,
-            ManagerId = 1,
-            SignedDate = DateTime.Now,
-            EffectiveDate = DateTime.Now
+            new() { Id = 1, RegistrationNumber = "001", Institution = "Banka", ClientId = 1, ManagerId = 1 }
         };
+        client.Contracts = contracts;
 
-        context.Clients.Add(client);
-        context.Contracts.Add(contract);
-        await context.SaveChangesAsync(CT);
-
-        var service = CreateService(context);
+        mockRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(client);
 
         // Act
         await service.DeleteClient(1, true);
 
         // Assert
-        Assert.Empty(await context.Clients.ToListAsync(CT));
-        Assert.Empty(await context.Contracts.ToListAsync(CT));
+        mockRepo.Verify(r => r.DeleteRange(contracts), Times.Once);
+        mockRepo.Verify(r => r.Delete(client), Times.Once);
+        mockRepo.Verify(r => r.SaveChangesAsync(), Times.Once);
     }
 }

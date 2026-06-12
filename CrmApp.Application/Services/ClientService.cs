@@ -1,77 +1,47 @@
-﻿using CrmApp.Application.Models.Queries;
+﻿using CrmApp.Application.Interfaces;
+using CrmApp.Application.Models.Queries;
 using CrmApp.Domain.Models;
-using CrmApp.Infrastructure.Data;
-
-using Microsoft.EntityFrameworkCore;
 
 namespace CrmApp.Application.Services;
 
-public class ClientService(CrmDbContext context) : IClientService
+public class ClientService(IClientRepository repository) : IClientService
 {
     public async Task CreateClient(Client client)
     {
-        context.Clients.Add(client);
-        await context.SaveChangesAsync();
+        await repository.AddAsync(client);
+        await repository.SaveChangesAsync();
     }
 
     public async Task DeleteClient(int id, bool deleteContracts = false)
     {
-        var client = await context.Clients
-            .Include(c => c.Contracts)
-            .FirstOrDefaultAsync(c => c.Id == id);
+        var client = await repository.GetByIdAsync(id);
 
         if (client != null)
         {
             if (deleteContracts && client.Contracts != null && client.Contracts.Count != 0)
             {
-                context.Contracts.RemoveRange(client.Contracts);
+                repository.DeleteRange(client.Contracts);
             }
 
-            context.Clients.Remove(client);
-            await context.SaveChangesAsync();
+            repository.Delete(client);
+            await repository.SaveChangesAsync();
         }
     }
 
     public async Task<Client?> GetClientById(int id)
     {
-        return await context.Clients
-            .Include(c => c.Contracts)
-            .FirstOrDefaultAsync(c => c.Id == id);
+        return await repository.GetByIdAsync(id);
     }
 
     public async Task<IEnumerable<Client>> GetAllClients(PersonQuery? query = null)
     {
-        var q = context.Clients
-            .AsNoTracking()
-            .Include(c => c.Contracts)
-            .AsQueryable();
-
-        if (!string.IsNullOrWhiteSpace(query?.Search))
-        {
-            var search = query.Search.Trim();
-            q = q.Where(c =>
-                c.FirstName.Contains(search) ||
-                c.LastName.Contains(search) ||
-                c.BirthNumber.Contains(search));
-        }
-
-        q = query?.SortBy switch
-        {
-            "lastNameDesc" => q.OrderByDescending(c => c.LastName).ThenBy(c => c.FirstName),
-            "firstName" => q.OrderBy(c => c.FirstName).ThenBy(c => c.LastName),
-            "firstNameDesc" => q.OrderByDescending(c => c.FirstName).ThenBy(c => c.LastName),
-            "birthNumber" => q.OrderBy(c => c.BirthNumber),
-            "birthNumberDesc" => q.OrderByDescending(c => c.BirthNumber),
-            _ => q.OrderBy(c => c.LastName).ThenBy(c => c.FirstName)
-        };
-
-        return await q.ToListAsync();
+        return await repository.GetAllAsync(query);
     }
 
     public async Task UpdateClient(Client client)
     {
-        var existingClient = await context.Clients.FindAsync(client.Id) ?? throw new KeyNotFoundException($"Záznam s ID {client.Id} nebyl nalezen.");
-        context.Entry(existingClient).CurrentValues.SetValues(client);
-        await context.SaveChangesAsync();
+        var existingClient = await repository.GetByIdAsync(client.Id) ?? throw new KeyNotFoundException($"Záznam s ID {client.Id} nebyl nalezen.");
+        repository.Update(client, existingClient);
+        await repository.SaveChangesAsync();
     }
 }

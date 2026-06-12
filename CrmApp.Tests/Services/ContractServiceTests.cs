@@ -1,27 +1,21 @@
-﻿using CrmApp.Application.Models.Queries;
+﻿using CrmApp.Application.Interfaces;
+using CrmApp.Application.Models.Queries;
 using CrmApp.Application.Services;
 using CrmApp.Domain.Models;
-using CrmApp.Infrastructure.Data;
 
 using Microsoft.EntityFrameworkCore;
+
+using Moq;
 
 namespace CrmApp.Tests.Services;
 
 public class ContractServiceTests
 {
-    private static CancellationToken CT => TestContext.Current.CancellationToken;
-
-    private static CrmDbContext GetInMemoryDbContext()
+    private static (ContractService Service, Mock<IContractRepository> MockRepo) CreateService()
     {
-        var options = new DbContextOptionsBuilder<CrmDbContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
-        return new CrmDbContext(options);
-    }
-
-    private static ContractService CreateService(CrmDbContext context)
-    {
-        return new ContractService(context);
+        var mockRepo = new Mock<IContractRepository>();
+        var service = new ContractService(mockRepo.Object);
+        return (service, mockRepo);
     }
 
     private static List<Contract> GetSampleContracts()
@@ -53,217 +47,29 @@ public class ContractServiceTests
     }
 
     [Fact]
-    public async Task GetAllContracts_ShouldReturnAll_WhenQueryIsNull()
+    public async Task GetAllContracts_ShouldPassQueryToRepository_WhenCalled()
     {
         // Arrange
-        using var context = GetInMemoryDbContext();
-        context.Contracts.AddRange(GetSampleContracts());
-        await context.SaveChangesAsync(CT);
-        var service = CreateService(context);
-
-        // Act
-        var result = await service.GetAllContracts(null);
-
-        // Assert
-        Assert.Equal(3, result.Count());
-    }
-
-    [Fact]
-    public async Task GetAllContracts_ShouldExcludeExpired_WhenHideInactiveIsTrue()
-    {
-        // Arrange
-        using var context = GetInMemoryDbContext();
-        context.Contracts.AddRange(GetSampleContracts());
-        await context.SaveChangesAsync(CT);
-        var service = CreateService(context);
-        var query = new ContractQuery { HideInactive = true };
-
-        // Act
-        var result = (await service.GetAllContracts(query)).ToList();
-
-        // Assert
-        Assert.Equal(2, result.Count);
-        Assert.DoesNotContain(result, c => c.RegistrationNumber == "2024/099");
-    }
-
-    [Fact]
-    public async Task GetAllContracts_ShouldReturnMatching_WhenSearchMatchesInstitution()
-    {
-        // Arrange
-        using var context = GetInMemoryDbContext();
-        context.Contracts.AddRange(GetSampleContracts());
-        await context.SaveChangesAsync(CT);
-        var service = CreateService(context);
-        var query = new ContractQuery { Search = "Komer" };
-
-        // Act
-        var result = await service.GetAllContracts(query);
-
-        // Assert
-        Assert.Single(result);
-        Assert.Equal("Komerční banka", result.First().Institution);
-    }
-
-    [Theory]
-    [InlineData(null)]
-    [InlineData("   ")]
-    public async Task GetAllContracts_ShouldReturnAll_WhenSearchIsNullOrWhitespace(string? search)
-    {
-        // Arrange
-        using var context = GetInMemoryDbContext();
-        context.Contracts.AddRange(GetSampleContracts());
-        await context.SaveChangesAsync(CT);
-        var service = CreateService(context);
-        var query = new ContractQuery { Search = search };
+        var (service, mockRepo) = CreateService();
+        var query = new ContractQuery { Search = "ČSOB" };
+        var expectedContracts = GetSampleContracts();
+        mockRepo.Setup(r => r.GetAllAsync(query)).ReturnsAsync(expectedContracts);
 
         // Act
         var result = await service.GetAllContracts(query);
 
         // Assert
         Assert.Equal(3, result.Count());
-    }
-
-    [Theory]
-    [InlineData("signedDate", 2024)]
-    [InlineData("signedDateDesc", 2026)]
-    public async Task GetAllContracts_ShouldOrderBySignedDate_WhenSortByIsSignedDate(string sortOrder, int expectedFirstYear)
-    {
-        // Arrange
-        using var context = GetInMemoryDbContext();
-        context.Contracts.AddRange(GetSampleContracts());
-        await context.SaveChangesAsync(CT);
-        var service = CreateService(context);
-        var query = new ContractQuery { SortBy = sortOrder };
-
-        // Act
-        var result = (await service.GetAllContracts(query)).ToList();
-
-        // Assert
-        Assert.Equal(expectedFirstYear, result[0].SignedDate.Year);
-    }
-
-    [Theory]
-    [InlineData("registrationNumber", "2024/099")]
-    [InlineData("registrationNumberDesc", "2026/002")]
-    public async Task GetAllContracts_ShouldOrderByRegistrationNumber_WhenSortByIsRegistrationNumber(string sortOrder, string expectedFirstRegNum)
-    {
-        // Arrange
-        using var context = GetInMemoryDbContext();
-        context.Contracts.AddRange(GetSampleContracts());
-        await context.SaveChangesAsync(CT);
-        var service = CreateService(context);
-        var query = new ContractQuery { SortBy = sortOrder };
-
-        // Act
-        var result = (await service.GetAllContracts(query)).ToList();
-
-        // Assert
-        Assert.Equal(expectedFirstRegNum, result[0].RegistrationNumber);
-    }
-
-    [Theory]
-    [InlineData("institution", "ČSOB")]
-    [InlineData("institutionDesc", "Kooperativa")]
-    public async Task GetAllContracts_ShouldOrderByInstitution_WhenSortByIsInstitution(string sortOrder, string expectedFirstInstitution)
-    {
-        // Arrange
-        using var context = GetInMemoryDbContext();
-        context.Contracts.AddRange(GetSampleContracts());
-        await context.SaveChangesAsync(CT);
-        var service = CreateService(context);
-        var query = new ContractQuery { SortBy = sortOrder };
-
-        // Act
-        var result = (await service.GetAllContracts(query)).ToList();
-
-        // Assert
-        Assert.Equal(expectedFirstInstitution, result[0].Institution);
-    }
-
-    [Theory]
-    [InlineData("effectiveDate", 2024)]
-    [InlineData("effectiveDateDesc", 2026)]
-    public async Task GetAllContracts_ShouldOrderByEffectiveDate_WhenSortByIsEffectiveDate(string sortOrder, int expectedFirstYear)
-    {
-        // Arrange
-        using var context = GetInMemoryDbContext();
-        context.Contracts.AddRange(GetSampleContracts());
-        await context.SaveChangesAsync(CT);
-        var service = CreateService(context);
-        var query = new ContractQuery { SortBy = sortOrder };
-
-        // Act
-        var result = (await service.GetAllContracts(query)).ToList();
-
-        // Assert
-        Assert.Equal(expectedFirstYear, result[0].EffectiveDate.Year);
-    }
-
-    [Theory]
-    [InlineData("endDate", "2026/001")]
-    [InlineData("endDateDesc", "2026/002")]
-    public async Task GetAllContracts_ShouldOrderByEndDate_WhenSortByIsEndDate(string sortOrder, string expectedFirstRegNum)
-    {
-        // Arrange
-        using var context = GetInMemoryDbContext();
-        context.Contracts.AddRange(GetSampleContracts());
-        await context.SaveChangesAsync(CT);
-        var service = CreateService(context);
-        var query = new ContractQuery { SortBy = sortOrder };
-
-        // Act
-        var result = (await service.GetAllContracts(query)).ToList();
-
-        // Assert
-        Assert.Equal(expectedFirstRegNum, result[0].RegistrationNumber);
-    }
-
-    [Theory]
-    [InlineData("client", "Běžný")]
-    [InlineData("clientDesc", "Bývalý")]
-    public async Task GetAllContracts_ShouldOrderByClient_WhenSortByIsClient(string sortOrder, string expectedFirstClientLastName)
-    {
-        // Arrange
-        using var context = GetInMemoryDbContext();
-        context.Contracts.AddRange(GetSampleContracts());
-        await context.SaveChangesAsync(CT);
-        var service = CreateService(context);
-        var query = new ContractQuery { SortBy = sortOrder };
-
-        // Act
-        var result = (await service.GetAllContracts(query)).ToList();
-
-        // Assert
-        Assert.Equal(expectedFirstClientLastName, result[0].Client!.LastName);
-    }
-
-    [Theory]
-    [InlineData("manager", "Bývalá-Správcová")]
-    [InlineData("managerDesc", "Obojí")]
-    public async Task GetAllContracts_ShouldOrderByManager_WhenSortByIsManager(string sortOrder, string expectedFirstManagerLastName)
-    {
-        // Arrange
-        using var context = GetInMemoryDbContext();
-        context.Contracts.AddRange(GetSampleContracts());
-        await context.SaveChangesAsync(CT);
-        var service = CreateService(context);
-        var query = new ContractQuery { SortBy = sortOrder };
-
-        // Act
-        var result = (await service.GetAllContracts(query)).ToList();
-
-        // Assert
-        Assert.Equal(expectedFirstManagerLastName, result[0].Manager!.LastName);
+        mockRepo.Verify(r => r.GetAllAsync(query), Times.Once);
     }
 
     [Fact]
     public async Task GetContractById_ShouldReturnContract_WhenExists()
     {
         // Arrange
-        using var context = GetInMemoryDbContext();
-        context.Contracts.AddRange(GetSampleContracts());
-        await context.SaveChangesAsync(CT);
-        var service = CreateService(context);
+        var (service, mockRepo) = CreateService();
+        var expectedContract = GetSampleContracts().First();
+        mockRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(expectedContract);
 
         // Act
         var result = await service.GetContractById(1);
@@ -277,8 +83,8 @@ public class ContractServiceTests
     public async Task GetContractById_ShouldReturnNull_WhenNotExists()
     {
         // Arrange
-        using var context = GetInMemoryDbContext();
-        var service = CreateService(context);
+        var (service, mockRepo) = CreateService();
+        mockRepo.Setup(r => r.GetByIdAsync(999)).ReturnsAsync((Contract?)null);
 
         // Act
         var result = await service.GetContractById(999);
@@ -288,123 +94,105 @@ public class ContractServiceTests
     }
 
     [Fact]
-    public async Task CreateContract_ShouldAddContract_WhenParticipantsAreNull()
+    public async Task CreateContract_ShouldAddAndSave_WhenParticipantsAreNull()
     {
         // Arrange
-        using var context = GetInMemoryDbContext();
-        var service = CreateService(context);
-        var contract = new Contract { Id = 1, RegistrationNumber = "NEW/001", Institution = "Test Banka", Participants = null };
+        var (service, mockRepo) = CreateService();
+        var contract = new Contract { Id = 4, RegistrationNumber = "NEW/001", Institution = "Test Banka", Participants = null };
 
         // Act
         await service.CreateContract(contract);
 
         // Assert
-        Assert.Equal(1, await context.Contracts.CountAsync(CT));
+        mockRepo.Verify(r => r.AddAsync(contract), Times.Once);
+        mockRepo.Verify(r => r.SaveChangesAsync(), Times.Once);
     }
 
     [Fact]
-    public async Task CreateContract_ShouldAddContractAndAttachParticipants_WhenParticipantsExist()
+    public async Task UpdateContract_ShouldUpdateAndSave_WhenExistsAndParticipantsNull()
     {
         // Arrange
-        using var context = GetInMemoryDbContext();
-        var advisor = new Advisor { Id = 1, FirstName = "A", LastName = "B", BirthNumber = "111" };
-        context.Advisors.Add(advisor);
-        await context.SaveChangesAsync(CT);
-
-        var service = CreateService(context);
-        var contract = new Contract { Id = 1, RegistrationNumber = "NEW/002", Institution = "Test Banka", Participants = [advisor] };
-
-        // Act
-        await service.CreateContract(contract);
-
-        // Assert
-        var dbContract = await context.Contracts.Include(c => c.Participants).FirstAsync(CT);
-        Assert.Single(dbContract.Participants);
-    }
-
-    [Fact]
-    public async Task UpdateContract_ShouldModifyContract_WhenParticipantsAreNull()
-    {
-        // Arrange
-        using var context = GetInMemoryDbContext();
-        var contract = new Contract { Id = 1, RegistrationNumber = "OLD/001", Institution = "Stará Banka" };
-        context.Contracts.Add(contract);
-        await context.SaveChangesAsync(CT);
-
-        var service = CreateService(context);
+        var (service, mockRepo) = CreateService();
+        var existingContract = GetSampleContracts().First(c => c.Id == 1);
         var updatedContract = new Contract { Id = 1, RegistrationNumber = "UPDATED/001", Institution = "Nová Banka", Participants = null };
 
+        mockRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(existingContract);
+
         // Act
         await service.UpdateContract(updatedContract);
 
         // Assert
-        var dbContract = await context.Contracts.FirstAsync(CT);
-        Assert.Equal("UPDATED/001", dbContract.RegistrationNumber);
-        Assert.Equal("Nová Banka", dbContract.Institution);
+        mockRepo.Verify(r => r.Update(updatedContract, existingContract), Times.Once);
+        mockRepo.Verify(r => r.GetAdvisorsByIdsAsync(It.IsAny<IEnumerable<int>>()), Times.Never);
+        mockRepo.Verify(r => r.SaveChangesAsync(), Times.Once);
     }
 
     [Fact]
-    public async Task UpdateContract_ShouldModifyContractAndParticipants_WhenParticipantsExist()
+    public async Task UpdateContract_ShouldClearAndReassignParticipants_WhenParticipantsNotNull()
     {
         // Arrange
-        using var context = GetInMemoryDbContext();
-        var advisor1 = new Advisor { Id = 1, FirstName = "A", LastName = "B", BirthNumber = "111" };
-        var advisor2 = new Advisor { Id = 2, FirstName = "C", LastName = "D", BirthNumber = "222" };
-        context.Advisors.AddRange(advisor1, advisor2);
-        context.Contracts.Add(new Contract { Id = 1, RegistrationNumber = "OLD", Institution = "Banka", Participants = [advisor1] });
-        await context.SaveChangesAsync(CT);
+        var (service, mockRepo) = CreateService();
+        var existingContract = GetSampleContracts().First(c => c.Id == 1);
+        existingContract.Participants = [new Advisor { Id = 1, FirstName = "Petr", LastName = "Obojí", BirthNumber = "850202/5678" }];
 
-        var service = CreateService(context);
-        var updatedContract = new Contract { Id = 1, RegistrationNumber = "UPDATED", Institution = "Banka", Participants = [advisor2] };
+        var newParticipant = new Advisor { Id = 2, FirstName = "Karel", LastName = "Účastník", BirthNumber = "920303/9999" };
+        var updatedContract = new Contract { Id = 1, RegistrationNumber = "2026/001", Institution = "ČSOB", Participants = [newParticipant] };
+        var fetchedAdvisors = new List<Advisor> { newParticipant };
+
+        mockRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(existingContract);
+        mockRepo.Setup(r => r.GetAdvisorsByIdsAsync(It.Is<IEnumerable<int>>(ids => ids.Contains(2)))).ReturnsAsync(fetchedAdvisors);
 
         // Act
         await service.UpdateContract(updatedContract);
 
         // Assert
-        var dbContract = await context.Contracts.Include(c => c.Participants).FirstAsync(CT);
-        Assert.Single(dbContract.Participants);
-        Assert.Equal(2, dbContract.Participants.First().Id);
+        mockRepo.Verify(r => r.Update(updatedContract, existingContract), Times.Once);
+        Assert.Single(existingContract.Participants);
+        Assert.Equal(2, existingContract.Participants.First().Id);
+        mockRepo.Verify(r => r.SaveChangesAsync(), Times.Once);
     }
 
     [Fact]
     public async Task UpdateContract_ShouldThrowKeyNotFoundException_WhenNotExists()
     {
         // Arrange
-        using var context = GetInMemoryDbContext();
-        var service = CreateService(context);
+        var (service, mockRepo) = CreateService();
         var contract = new Contract { Id = 999, RegistrationNumber = "GHOST", Institution = "Nic" };
+        mockRepo.Setup(r => r.GetByIdAsync(999)).ReturnsAsync((Contract?)null);
 
         // Act & Assert
         await Assert.ThrowsAsync<KeyNotFoundException>(() => service.UpdateContract(contract));
+        mockRepo.Verify(r => r.Update(It.IsAny<Contract>(), It.IsAny<Contract>()), Times.Never);
     }
 
     [Fact]
-    public async Task DeleteContract_ShouldRemoveContract_WhenExists()
+    public async Task DeleteContract_ShouldDeleteAndSave_WhenExists()
     {
         // Arrange
-        using var context = GetInMemoryDbContext();
-        context.Contracts.Add(new Contract { Id = 1, RegistrationNumber = "TO_DELETE", Institution = "Delete Banka" });
-        await context.SaveChangesAsync(CT);
-        var service = CreateService(context);
+        var (service, mockRepo) = CreateService();
+        var contract = GetSampleContracts().First(c => c.Id == 1);
+        mockRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(contract);
 
         // Act
         await service.DeleteContract(1);
 
         // Assert
-        Assert.Empty(await context.Contracts.ToListAsync(CT));
+        mockRepo.Verify(r => r.Delete(contract), Times.Once);
+        mockRepo.Verify(r => r.SaveChangesAsync(), Times.Once);
     }
 
     [Fact]
-    public async Task DeleteContract_ShouldNotThrow_WhenNotExists()
+    public async Task DeleteContract_ShouldNotDelete_WhenNotExists()
     {
         // Arrange
-        using var context = GetInMemoryDbContext();
-        var service = CreateService(context);
+        var (service, mockRepo) = CreateService();
+        mockRepo.Setup(r => r.GetByIdAsync(999)).ReturnsAsync((Contract?)null);
 
         // Act
         await service.DeleteContract(999);
 
         // Assert
-        Assert.Empty(await context.Contracts.ToListAsync(CT));
+        mockRepo.Verify(r => r.Delete(It.IsAny<Contract>()), Times.Never);
+        mockRepo.Verify(r => r.SaveChangesAsync(), Times.Never);
     }
 }

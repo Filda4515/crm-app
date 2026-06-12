@@ -1,5 +1,7 @@
+using CrmApp.Application.Interfaces;
 using CrmApp.Application.Services;
 using CrmApp.Infrastructure.Data;
+using CrmApp.Infrastructure.Repositories;
 using CrmApp.Web.Models;
 
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -18,6 +20,10 @@ builder.Services.AddDbContext<CrmDbContext>(options =>
 builder.Services.AddScoped<IClientService, ClientService>();
 builder.Services.AddScoped<IAdvisorService, AdvisorService>();
 builder.Services.AddScoped<IContractService, ContractService>();
+
+builder.Services.AddScoped<IClientRepository, ClientRepository>();
+builder.Services.AddScoped<IAdvisorRepository, AdvisorRepository>();
+builder.Services.AddScoped<IContractRepository, ContractRepository>();
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>

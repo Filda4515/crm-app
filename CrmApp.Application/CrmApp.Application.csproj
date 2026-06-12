@@ -12,7 +12,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CrmApp.Domain\CrmApp.Domain.csproj" />
-    <ProjectReference Include="..\CrmApp.Infrastructure\CrmApp.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

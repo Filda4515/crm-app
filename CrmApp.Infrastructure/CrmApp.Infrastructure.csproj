@@ -16,6 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\CrmApp.Application\CrmApp.Application.csproj" />
     <ProjectReference Include="..\CrmApp.Domain\CrmApp.Domain.csproj" />
   </ItemGroup>
 
